@@ -33,11 +33,12 @@ export class UserEntity {
     @Column({ default: false })
     isVerified: boolean
 
-    @Column({ nullable: true })
+    @Column({ type: 'int', nullable: true })
     otpCode?: number | null;
-
-    @Column({ nullable: true, type: 'timestamp' })
+    
+    @Column({ type: 'timestamp', nullable: true })
     otpExpiredAt?: Date | null;
+    
 
     @CreateDateColumn()
     createdAt: Date;
