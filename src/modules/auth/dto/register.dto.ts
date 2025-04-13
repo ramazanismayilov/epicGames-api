@@ -12,7 +12,7 @@ export class RegisterDto {
 
     @Type()
     @IsString()
-    @Length(5, 15)
+    @Length(5, 20)
     username: string
 
     @Type()
@@ -20,12 +20,16 @@ export class RegisterDto {
     @IsEmail()
     email: string
 
-    @Type(() => Date)
-    @IsDate()
-    birthDate: Date
-
     @Type()
     @IsString()
     @Length(6, 12)
     password: string;
+
+    @Type(() => Date)
+    @IsDate()
+    dateOfBirth: Date
+
+    @Type()
+    @IsString()
+    country: string;
 }

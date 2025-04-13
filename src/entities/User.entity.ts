@@ -1,8 +1,9 @@
-import { Column, CreateDateColumn, Entity, PrimaryColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryColumn, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { RoleEntity } from "./Role.entity";
 
 @Entity('user')
 export class UserEntity {
-    @PrimaryColumn()
+    @PrimaryGeneratedColumn()
     id: number
 
     @Column()
@@ -19,9 +20,9 @@ export class UserEntity {
 
     @Column()
     password: string
-    
+
     @Column()
-    dateOfBirth: string
+    dateOfBirth: Date
 
     @Column()
     country: string
@@ -29,17 +30,20 @@ export class UserEntity {
     @Column()
     accountId: string
 
-    @Column()
-    isActive: boolean
+    @Column({ default: false })
+    isVerified: boolean
 
     @Column({ nullable: true })
-    otpCode: number;
+    otpCode?: number | null;
 
     @Column({ nullable: true, type: 'timestamp' })
-    otpExpiredAt: Date;
+    otpExpiredAt?: Date | null;
 
     @CreateDateColumn()
     createdAt: Date;
+
+    @ManyToOne(() => RoleEntity, (role) => role.users, { onDelete: 'SET NULL' })
+    role: RoleEntity;
 
     @UpdateDateColumn()
     updatedAt: Date;

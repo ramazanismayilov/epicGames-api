@@ -1,11 +1,11 @@
 import { Controller, Get } from "@nestjs/common";
 import { GlobalService } from "./global.service";
 
-@Controller('country')
+@Controller('global')
 export class GlobalController {
     constructor(private globalService: GlobalService) { }
 
-    @Get()
+    @Get('countries')
     allCountries(){
         return this.globalService.allCountries()
     }
