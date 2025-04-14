@@ -8,6 +8,7 @@ import { Auth } from "src/common/decorators/auth.decorator";
 import { ResetPasswordDto } from "./dto/reset-password.dto";
 import { CreateForgetPasswordDto } from "./dto/create-forget-password.dto";
 import { ConfirmForgetPaswordDto } from "./dto/confirm-forget-password.dto";
+import { ResentOtpDto } from "./dto/resent-otp.dto";
 
 @Controller('auth')
 export class AuthController {
@@ -26,6 +27,11 @@ export class AuthController {
     @Post('verifyOtp')
     verifyOtp(@Body() body: VerifyOtpDto) {
         return this.authService.verifyOtp(body)
+    }
+
+    @Post('resentOtp')
+    resendOtp(@Body() body: ResentOtpDto) {
+        return this.authService.resendOtp(body)
     }
 
     @Post('refresh-token')

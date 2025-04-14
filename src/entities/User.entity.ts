@@ -27,6 +27,9 @@ export class UserEntity {
     @Column()
     country: string
 
+    @Column({ type: 'float', default: 0 })
+    balance: number
+
     @Column()
     accountId: string
 

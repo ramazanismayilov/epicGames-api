@@ -18,6 +18,7 @@ import { UserActivationEntity } from "src/entities/UserActivation.entity";
 import { addMinutes } from "date-fns";
 import { ConfirmForgetPaswordDto } from "./dto/confirm-forget-password.dto";
 import { validatePasswords } from "src/common/utils/password.utils";
+import { ResentOtpDto } from "./dto/resent-otp.dto";
 
 @Injectable()
 export class AuthService {
@@ -121,6 +122,29 @@ export class AuthService {
         } catch (error) {
             throw new UnauthorizedException('Invalid or expired refresh token');
         }
+    }
+
+    async resendOtp(params: ResentOtpDto) {
+        const user = await this.userRepo.findOne({ where: { email: params.email } });
+        if (!user) throw new NotFoundException('User not found');
+        if (user.isVerified) throw new BadRequestException('Account is already verified');
+
+        user.otpCode = generateOtpNumber();
+        user.otpExpiredAt = generateOtpExpireDate();
+
+        await this.userRepo.save(user);
+
+        await this.mailer.sendMail({
+            to: params.email,
+            subject: 'Verify Your Email – Epic Games!',
+            template: 'verify-email',
+            context: {
+                username: user.username,
+                otpCode: user.otpCode,
+            },
+        });
+
+        return { message: 'OTP has been resent to your email.' };
     }
 
     async resetPassword(params: ResetPasswordDto) {
