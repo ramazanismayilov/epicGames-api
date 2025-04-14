@@ -16,9 +16,6 @@ export class MenuEntity {
     @Column()
     icon: string;
 
-    @OneToMany(() => UserEntity, user => user.role)
-    users: UserEntity[]
-
     @ManyToMany(() => RoleEntity, (role) => role.menus)
     roles: RoleEntity[];
 }

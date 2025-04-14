@@ -38,7 +38,6 @@ export class UserEntity {
     
     @Column({ type: 'timestamp', nullable: true })
     otpExpiredAt?: Date | null;
-    
 
     @CreateDateColumn()
     createdAt: Date;
