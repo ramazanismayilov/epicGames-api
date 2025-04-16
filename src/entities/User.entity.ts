@@ -18,6 +18,9 @@ export class UserEntity {
     @Column({ unique: true })
     email: string
 
+    @Column({ unique: true, nullable: true, type: 'varchar' })
+    pendingEmail?: string | null
+
     @Column()
     password: string
 
@@ -42,11 +45,11 @@ export class UserEntity {
     @Column({ type: 'timestamp', nullable: true })
     otpExpiredAt?: Date | null;
 
-    @CreateDateColumn()
-    createdAt: Date;
-
     @ManyToOne(() => RoleEntity, (role) => role.users, { onDelete: 'SET NULL' })
     role: RoleEntity;
+
+    @CreateDateColumn()
+    createdAt: Date;
 
     @UpdateDateColumn()
     updatedAt: Date;

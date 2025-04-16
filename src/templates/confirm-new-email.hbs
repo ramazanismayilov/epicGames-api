@@ -1,0 +1,87 @@
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8' />
+    <title>Verify New Email Request</title>
+    <style>
+      body {
+        font-family: 'Arial', sans-serif;
+        background-color: #1a1a1a;
+        color: #ffffff;
+        margin: 0;
+        padding: 0;
+      }
+
+      .email-container {
+        max-width: 500px;
+        margin: 50px auto;
+        background-color: #2c2c2c;
+        border-radius: 10px;
+        padding: 40px;
+        text-align: center;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      h2 {
+        color: #ffffff;
+        font-size: 28px;
+        margin-bottom: 15px;
+      }
+
+      p {
+        font-size: 16px;
+        color: #dddddd;
+        line-height: 1.6;
+        margin: 15px 0;
+      }
+
+      .otp-code {
+        display: inline-block;
+        font-size: 36px;
+        font-weight: bold;
+        background-color: #ffffff;
+        color: #000000;
+        padding: 16px 32px;
+        border-radius: 8px;
+        letter-spacing: 5px;
+        margin: 20px 0;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .footer {
+        margin-top: 30px;
+        font-size: 14px;
+        color: #aaaaaa;
+        text-align: center;
+      }
+
+      .footer a {
+        color: #1a1a1a;
+        text-decoration: none;
+      }
+
+      .footer a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class='email-container'>
+      <div class='logo'>
+        <img
+          src='https://fineproxy.org/wp-content/uploads/2023/08/Epic-Games-logo.png'
+          alt='Epic Games'
+          height='80'
+        />
+      </div>
+      <h2>Verify New Email Request</h2>
+      <p>Hello <strong>{{username}}</strong>,</p>
+      <p>Use the code below to verify your new email address:</p>
+      <div class='otp-code'>{{otpCode}}</div>
+      <p>This code will expire in 10 minutes.</p>
+      <div class='footer'>
+        Best regards, Epic Games!
+      </div>
+    </div>
+  </body>
+</html>

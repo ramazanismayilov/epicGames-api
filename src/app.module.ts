@@ -13,6 +13,8 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
 import { AuthModule } from './modules/auth/auth.module';
 import { GlobalModule } from './modules/global/global.module';
 import { UserModule } from './modules/user/user.module';
+import { RoleModule } from './modules/role/role.module';
+import { MenuModule } from './modules/menu/menu.module';
 
 @Module({
   imports: [
@@ -70,7 +72,7 @@ import { UserModule } from './modules/user/user.module';
             },
           },
           defaults: {
-            from: `"166 Cargo" <${config.get('SMTP_FROM')}>`,
+            from: `"Epic Games" <${config.get('SMTP_FROM')}>`,
           },
           template: {
             dir: join(__dirname, '..', 'src', 'templates'),
@@ -84,6 +86,8 @@ import { UserModule } from './modules/user/user.module';
     }),
     AuthModule,
     UserModule,
+    RoleModule,
+    MenuModule,
     GlobalModule
   ],
   controllers: [AppController],
