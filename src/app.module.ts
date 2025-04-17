@@ -13,8 +13,8 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
 import { AuthModule } from './modules/auth/auth.module';
 import { GlobalModule } from './modules/global/global.module';
 import { UserModule } from './modules/user/user.module';
-import { RoleModule } from './modules/role/role.module';
 import { MenuModule } from './modules/menu/menu.module';
+import { GeneralModule } from './modules/general/general.module';
 
 @Module({
   imports: [
@@ -86,7 +86,7 @@ import { MenuModule } from './modules/menu/menu.module';
     }),
     AuthModule,
     UserModule,
-    RoleModule,
+    GeneralModule,
     MenuModule,
     GlobalModule
   ],

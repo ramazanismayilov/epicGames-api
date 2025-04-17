@@ -1,10 +1,11 @@
-import { Body, Controller, Get, Param, Post } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post } from "@nestjs/common";
 import { UserService } from "./user.service";
 import { Auth } from "src/common/decorators/auth.decorator";
 import { IncreaseBalanceDto } from "./dto/increaseBalance.dto";
 import { ProfileUpdateDto } from "./dto/updateProfile.dto";
 import { EmailUpdateDto } from "./dto/updateEmail.dto";
 import { VerifyNewEmailDto } from "./dto/verifyNewEmail.dto";
+import { SetUserRoleDto } from "./dto/setUserRole.dto";
 
 @Controller('users')
 export class UserController {
@@ -38,9 +39,21 @@ export class UserController {
         return this.userService.verifyNewEmail(body);
     }
 
+    @Delete(':id')
+    @Auth()
+    async deleteUser(@Param('id') id: number) {
+        return this.userService.deleteUser(id);
+    }
+
     @Post('increaseBalance')
     @Auth()
     async increaseBalance(@Body() body: IncreaseBalanceDto) {
         return this.userService.increaseBalance(body);
+    }
+
+    @Post(':id/setRole')
+    @Auth()
+    async setUserRole(@Param('id') id: number, @Body() body: SetUserRoleDto) {
+        return this.userService.setUserRole(id, body);
     }
 }

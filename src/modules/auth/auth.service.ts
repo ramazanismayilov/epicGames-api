@@ -19,10 +19,13 @@ import { addMinutes } from "date-fns";
 import { ConfirmForgetPaswordDto } from "./dto/confirm-forget-password.dto";
 import { validatePasswords } from "src/common/utils/password.utils";
 import { ResentOtpDto } from "./dto/resent-otp.dto";
+import { Role } from "src/common/enums/role.enum";
+import { RoleEntity } from "src/entities/Role.entity";
 
 @Injectable()
 export class AuthService {
     private userRepo: Repository<UserEntity>
+    private roleRepo: Repository<RoleEntity>
     private userActivationRepo: Repository<UserActivationEntity>
 
     constructor(
@@ -32,6 +35,7 @@ export class AuthService {
         @InjectDataSource() private dataSource: DataSource
     ) {
         this.userRepo = this.dataSource.getRepository(UserEntity)
+        this.roleRepo = this.dataSource.getRepository(RoleEntity)
         this.userActivationRepo = this.dataSource.getRepository(UserActivationEntity)
     }
 
@@ -67,6 +71,9 @@ export class AuthService {
 
         const hashedPassword = await bcrypt.hash(params.password, 10);
 
+        const role = await this.roleRepo.findOne({ where: { name: Role.USER } });
+        if (!role) throw new NotFoundException('Role USER not found');
+
         let user = this.userRepo.create({
             ...params,
             password: hashedPassword,
@@ -74,6 +81,7 @@ export class AuthService {
             isVerified: false,
             otpCode: generateOtpNumber(),
             otpExpiredAt: generateOtpExpireDate(),
+            role,
         })
 
         await this.userRepo.save(user)

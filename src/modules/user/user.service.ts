@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectDataSource } from "@nestjs/typeorm";
 import { UserEntity } from "src/entities/User.entity";
 import { DataSource, Repository } from "typeorm";
@@ -9,27 +9,49 @@ import { generateOtpExpireDate, generateOtpNumber } from "src/common/utils/rando
 import { MailerService } from "@nestjs-modules/mailer";
 import { VerifyNewEmailDto } from "./dto/verifyNewEmail.dto";
 import { EmailUpdateDto } from "./dto/updateEmail.dto";
+import { RoleEntity } from "src/entities/Role.entity";
+import { SetUserRoleDto } from "./dto/setUserRole.dto";
+import { Role } from "src/common/enums/role.enum";
 
 @Injectable()
 export class UserService {
     private userRepo: Repository<UserEntity>
+    private roleRepo: Repository<RoleEntity>
 
     constructor(
         private cls: ClsService,
         private mailer: MailerService,
         @InjectDataSource() private dataSource: DataSource
     ) {
-        this.userRepo = this.dataSource.getRepository(UserEntity);
+        this.userRepo = this.dataSource.getRepository(UserEntity)
+        this.roleRepo = this.dataSource.getRepository(RoleEntity)
     }
 
     async getUsers() {
-        let user = await this.userRepo.find();
+        let user = await this.userRepo.find({
+            relations: ['role'],
+            select: {
+                role: {
+                    id: true,
+                    name: true
+                }
+            }
+        });
         if (!user) throw new NotFoundException('User not found')
         return user
     }
 
     async getUser(userId: number) {
-        let user = await this.userRepo.findOne({ where: { id: userId } });
+        let user = await this.userRepo.findOne({
+            where: { id: userId },
+            relations: ['role'],
+            select: {
+                role: {
+                    id: true,
+                    name: true
+                }
+            }
+        });
         if (!user) throw new NotFoundException('User not found')
         return user
     }
@@ -90,6 +112,25 @@ export class UserService {
         return { message: 'Email successfully updated' };
     }
 
+    async deleteUser(userId: number) {
+        const currentUser = this.cls.get<UserEntity>('user');
+
+        const userToDelete = await this.userRepo.findOne({ where: { id: userId } });
+        if (!userToDelete) throw new NotFoundException('User not found');
+
+        if (currentUser.role.name === Role.ADMIN) {
+            await this.userRepo.remove(userToDelete);
+            return { message: 'User has been successfully deleted' };
+        }
+
+        if (currentUser.id !== userId) {
+            throw new ForbiddenException({ message: 'You can only delete your own account' });
+        }
+
+        await this.userRepo.remove(userToDelete);
+        return { message: 'Your account has been successfully deleted' };
+    }
+
     async increaseBalance(params: IncreaseBalanceDto) {
         let user = this.cls.get<UserEntity>('user')
         user.balance += params.balance
@@ -97,5 +138,20 @@ export class UserService {
         await this.userRepo.save(user)
 
         return { message: "Balance updated successfully", balance: user.balance }
+    }
+
+    async setUserRole(userId: number, params: SetUserRoleDto) {
+        const currentUser = this.cls.get<UserEntity>('user');
+        if (currentUser.role.name !== Role.ADMIN) throw new ForbiddenException('You do not have permission to assign roles');
+
+        const user = await this.userRepo.findOne({ where: { id: userId } });
+        if (!user) throw new NotFoundException('User not found');
+
+        const role = await this.roleRepo.findOneBy({ id: params.role });
+        if (!role) throw new NotFoundException('Role not found');
+
+        user.role = role;
+        await this.userRepo.save(user);
+        return { message: 'User role updated successfully', user };
     }
 }

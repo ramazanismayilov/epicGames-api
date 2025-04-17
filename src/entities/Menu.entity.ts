@@ -1,5 +1,4 @@
-import { Column, Entity, ManyToMany, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { UserEntity } from "./User.entity";
+import { Column, CreateDateColumn, Entity, ManyToMany, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { RoleEntity } from "./Role.entity";
 
 @Entity('menu')
@@ -18,4 +17,10 @@ export class MenuEntity {
 
     @ManyToMany(() => RoleEntity, (role) => role.menus)
     roles: RoleEntity[];
+
+    @CreateDateColumn()
+    createdAt: Date;
+
+    @UpdateDateColumn()
+    updatedAt: Date;
 }
