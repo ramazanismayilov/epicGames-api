@@ -1,12 +1,16 @@
+import { Media } from 'src/common/enums/media.enum';
 import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
-@Entity('images')
-export class ImageEntity extends BaseEntity {
+@Entity('media')
+export class MediaEntity extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
     @Column()
     url: string;
+
+    @Column({ type: 'enum', enum: Media, default: Media.IMAGE })
+    type: Media;
 
     @CreateDateColumn()
     createdAt: Date;

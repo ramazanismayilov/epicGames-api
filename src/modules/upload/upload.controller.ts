@@ -4,26 +4,26 @@ import { UploadService } from "./upload.service";
 import { FilesInterceptor } from "@nestjs/platform-express";
 import { memoryStorage } from "multer";
 import { ApiBody, ApiConsumes } from "@nestjs/swagger";
-import { UPLOAD_IMAGE_MAX_SIZE } from "src/common/constants/upload.constant";
-import { imageFileFilter } from "src/common/utils/upload.utils";
+import { UPLOAD_MEDIA_MAX_SIZE } from "src/common/constants/upload.constant";
+import { mediaFileFilter } from "src/common/utils/upload.utils";
 
 @Controller('upload')
 export class UploadController {
   constructor(private uploadService: UploadService) { }
 
-  @Get('images')
-  allImages() {
-    return this.uploadService.allImages()
+  @Get('medias')
+  getMedias() {
+    return this.uploadService.getMedias()
   }
 
-  @Post('image')
+  @Post('media')
   @Auth()
   @UseInterceptors(
-    FilesInterceptor('images', 10, { 
+    FilesInterceptor('files', 10, { 
       storage: memoryStorage(),
-      fileFilter: imageFileFilter,
+      fileFilter: mediaFileFilter,
       limits: {
-        fileSize: UPLOAD_IMAGE_MAX_SIZE,
+        fileSize: UPLOAD_MEDIA_MAX_SIZE,
       },
     }),
   )
@@ -32,7 +32,7 @@ export class UploadController {
     schema: {
       type: 'object',
       properties: {
-        images: {
+        files: {
           type: 'array',
           items: {
             type: 'string',
@@ -42,14 +42,14 @@ export class UploadController {
       },
     },
   })
-  uploadImages(@UploadedFiles() files: Express.Multer.File[]) {
-    return this.uploadService.uploadImages(files);
+  uploadMedias(@UploadedFiles() files: Express.Multer.File[]) {
+    return this.uploadService.uploadMedias(files);
   }
   
 
-  @Delete('image/:id')
+  @Delete('media/:id')
   @Auth()
-  deleteImage(@Param('id') id: string) {
-    return this.uploadService.deleteImage(id);
+  deletemedia(@Param('id') id: string) {
+    return this.uploadService.deletemedia(id);
   }
 }

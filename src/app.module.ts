@@ -15,6 +15,7 @@ import { GlobalModule } from './modules/global/global.module';
 import { UserModule } from './modules/user/user.module';
 import { GeneralModule } from './modules/general/general.module';
 import { UploadModule } from './modules/upload/upload.module';
+import { NewsModule } from './modules/news/news.module';
 
 @Module({
   imports: [
@@ -88,7 +89,8 @@ import { UploadModule } from './modules/upload/upload.module';
     UserModule,
     GeneralModule,
     GlobalModule,
-    UploadModule
+    UploadModule,
+    NewsModule
   ],
   controllers: [AppController],
   providers: [AppService],
