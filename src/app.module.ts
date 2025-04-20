@@ -21,6 +21,7 @@ import { GenreModule } from './modules/genre/genre.module';
 import { FeatureModule } from './modules/feature/feature.module';
 import { TypeModule } from './modules/type/type.module';
 import { PlatformModule } from './modules/platform/platform.module';
+import { SubscriptionModule } from './modules/subscription/subscription.module';
 
 @Module({
   imports: [
@@ -100,7 +101,8 @@ import { PlatformModule } from './modules/platform/platform.module';
     GenreModule,
     FeatureModule,
     TypeModule,
-    PlatformModule
+    PlatformModule,
+    SubscriptionModule
   ],
   controllers: [AppController],
   providers: [AppService],

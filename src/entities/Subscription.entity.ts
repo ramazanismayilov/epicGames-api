@@ -1,8 +1,8 @@
 import { Column, CreateDateColumn, Entity, ManyToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { ProductEntity } from "./Product.entity";
 
-@Entity('feature')
-export class FeatureEntity {
+@Entity('subscription')
+export class SubscriptionEntity {
     @PrimaryGeneratedColumn()
     id: number
 

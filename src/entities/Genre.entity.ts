@@ -1,4 +1,5 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, ManyToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { ProductEntity } from "./Product.entity";
 
 @Entity('genre')
 export class GenreEntity {
@@ -7,6 +8,9 @@ export class GenreEntity {
 
     @Column()
     name: string
+
+    @ManyToMany(() => ProductEntity, product => product.platforms)
+    products: ProductEntity[];
 
     @CreateDateColumn()
     createdAt: Date;
