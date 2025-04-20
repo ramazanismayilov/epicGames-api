@@ -1,11 +1,11 @@
-import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { ConflictException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectDataSource } from "@nestjs/typeorm";
 import { ClsService } from "nestjs-cls";
 import { Role } from "src/common/enums/role.enum";
 import { NewsEntity } from "src/entities/News.entity";
 import { UserEntity } from "src/entities/User.entity";
 import { DataSource, Repository } from "typeorm";
-import { AddNewsDto, UpdateNewsDto } from "./dto/news.dto";
+import { AddNewsDto, NewsPagination, UpdateNewsDto } from "./dto/news.dto";
 import { MediaEntity } from "src/entities/Media.entity";
 
 @Injectable()
@@ -19,43 +19,31 @@ export class NewsService {
     ) {
         this.newsRepo = this.dataSource.getRepository(NewsEntity)
         this.mediaRepo = this.dataSource.getRepository(MediaEntity)
+
     }
 
-    async getAllNews() {
-        let news = await this.newsRepo.find({
+    async getAllNews(params: NewsPagination) {
+        const [news, total] = await this.newsRepo.findAndCount({
             relations: ['media'],
             select: {
                 media: {
                     id: true,
                     url: true,
-                    type: true
-                }
-            }
-        })
-        if (news.length === 0) throw new NotFoundException('News not found')
-
-        const newsWithTimeAgo = news.map(item => {
-            const now = new Date();
-            const createdAt = new Date(item.createdAt);
-            const diffMs = now.getTime() - createdAt.getTime();
-            const diffMinutes = Math.floor(diffMs / 60000);
-
-            const hours = Math.floor(diffMinutes / 60);
-            const minutes = diffMinutes % 60;
-
-            let timeAgo = '';
-            if (hours > 0) {
-                timeAgo += `${hours} saat `;
-            }
-            timeAgo += `${minutes} dəqiqə əvvəl`;
-
-            return {
-                ...item,
-                timeAgo,
-            };
+                    type: true,
+                },
+            },
+            skip: (params.page - 1) * params.pageSize,
+            take: params.pageSize,
         });
-        return newsWithTimeAgo
 
+        if (news.length === 0) throw new NotFoundException('News not found');
+
+        return {
+            data: news,
+            count: total,
+            totalPage: Math.ceil(total / params.pageSize),
+            currentPage: params.page,
+        };
     }
 
     async getNews(newsId: number) {
@@ -79,6 +67,9 @@ export class NewsService {
     async addNews(params: AddNewsDto) {
         const user = this.cls.get<UserEntity>('user')
         if (user.role.name !== Role.ADMIN) throw new ForbiddenException('You do not have permission to add news')
+
+        let existingNews = await this.newsRepo.findOne({ where: { media: { id: params.mediaId } } })
+        if (existingNews) throw new ConflictException("This media has already been used in another news entry");
 
         let media = await this.mediaRepo.findOne({ where: { id: params.mediaId } })
         if (!media) throw new NotFoundException("Media not found")

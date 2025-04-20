@@ -1,15 +1,15 @@
-import { Body, Controller, Delete, Get, Param, Post } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Query } from "@nestjs/common";
 import { NewsService } from "./news.service";
 import { Auth } from "src/common/decorators/auth.decorator";
-import { AddNewsDto, UpdateNewsDto } from "./dto/news.dto";
+import { AddNewsDto, NewsPagination, UpdateNewsDto } from "./dto/news.dto";
 
 @Controller('news')
 export class NewsController {
     constructor(private newsService: NewsService) { }
 
     @Get()
-    getAllNews() {
-        return this.newsService.getAllNews()
+    getAllNews(@Query() params: NewsPagination) {
+        return this.newsService.getAllNews(params);
     }
 
     @Get(':id')
