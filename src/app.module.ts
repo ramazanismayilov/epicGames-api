@@ -16,6 +16,11 @@ import { UserModule } from './modules/user/user.module';
 import { GeneralModule } from './modules/general/general.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { NewsModule } from './modules/news/news.module';
+import { EventModule } from './modules/event/event.module';
+import { GenreModule } from './modules/genre/genre.module';
+import { FeatureModule } from './modules/feature/feature.module';
+import { TypeModule } from './modules/type/type.module';
+import { PlatformModule } from './modules/platform/platform.module';
 
 @Module({
   imports: [
@@ -90,7 +95,12 @@ import { NewsModule } from './modules/news/news.module';
     GeneralModule,
     GlobalModule,
     UploadModule,
-    NewsModule
+    NewsModule,
+    EventModule,
+    GenreModule,
+    FeatureModule,
+    TypeModule,
+    PlatformModule
   ],
   controllers: [AppController],
   providers: [AppService],

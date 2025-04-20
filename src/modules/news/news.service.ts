@@ -5,8 +5,9 @@ import { Role } from "src/common/enums/role.enum";
 import { NewsEntity } from "src/entities/News.entity";
 import { UserEntity } from "src/entities/User.entity";
 import { DataSource, Repository } from "typeorm";
-import { AddNewsDto, NewsPagination, UpdateNewsDto } from "./dto/news.dto";
+import { AddNewsDto, UpdateNewsDto } from "./dto/news.dto";
 import { MediaEntity } from "src/entities/Media.entity";
+import { PaginationDto } from "src/common/dto/pagination.dto";
 
 @Injectable()
 export class NewsService {
@@ -22,7 +23,7 @@ export class NewsService {
 
     }
 
-    async getAllNews(params: NewsPagination) {
+    async getAllNews(params: PaginationDto) {
         const [news, total] = await this.newsRepo.findAndCount({
             relations: ['media'],
             select: {
