@@ -9,7 +9,7 @@ export class GenreEntity {
     @Column()
     name: string
 
-    @ManyToMany(() => ProductEntity, product => product.platforms)
+    @ManyToMany(() => ProductEntity, product => product.platforms, {onDelete: 'CASCADE'})
     products: ProductEntity[];
 
     @CreateDateColumn()

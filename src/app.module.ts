@@ -22,6 +22,7 @@ import { FeatureModule } from './modules/feature/feature.module';
 import { TypeModule } from './modules/type/type.module';
 import { PlatformModule } from './modules/platform/platform.module';
 import { SubscriptionModule } from './modules/subscription/subscription.module';
+import { ProductModule } from './modules/product/product.module';
 
 @Module({
   imports: [
@@ -102,7 +103,8 @@ import { SubscriptionModule } from './modules/subscription/subscription.module';
     FeatureModule,
     TypeModule,
     PlatformModule,
-    SubscriptionModule
+    SubscriptionModule,
+    ProductModule
   ],
   controllers: [AppController],
   providers: [AppService],
