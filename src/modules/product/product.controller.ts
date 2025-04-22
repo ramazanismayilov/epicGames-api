@@ -1,9 +1,9 @@
-import { Body, Controller, Get, Param, Post } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post } from "@nestjs/common";
 import { ProductService } from "./product.service";
 import { AddProductDto } from "./dto/product.dto";
 import { Auth } from "src/common/decorators/auth.decorator";
 
-@Controller('product')
+@Controller('products')
 export class ProductController {
     constructor(private productService: ProductService) { }
 
@@ -13,7 +13,7 @@ export class ProductController {
     }
 
     @Get(':id')
-    getProduct(@Param() id: number) {
+    getProduct(@Param('id') id: number) {
         return this.productService.getProduct(id)
     }
 
@@ -21,5 +21,11 @@ export class ProductController {
     @Auth()
     addProduct(@Body() body: AddProductDto) {
         return this.productService.addProduct(body)
+    }
+
+    @Delete(':id')
+    @Auth()
+    deleteProduct(@Param('id') id: number) {
+        return this.productService.deleteProduct(id)
     }
 }

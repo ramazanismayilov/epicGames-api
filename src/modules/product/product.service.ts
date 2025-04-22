@@ -12,6 +12,9 @@ import { GenreEntity } from "src/entities/Genre.entity";
 import { FeatureEntity } from "src/entities/Feature.entity";
 import { PlatformEntity } from "src/entities/Platform.entity";
 import { SubscriptionEntity } from "src/entities/Subscription.entity";
+import { TypeEntity } from "src/entities/Type.entity";
+import { findManyOrFail, findOneOrFail } from "src/common/utils/findEntitie.utils";
+import { generateSlug } from "src/common/utils/slug.utils";
 
 @Injectable()
 export class ProductService {
@@ -22,6 +25,7 @@ export class ProductService {
     private featureRepo: Repository<FeatureEntity>
     private platformRepo: Repository<PlatformEntity>
     private subscriptionRepo: Repository<SubscriptionEntity>
+    private typeRepo: Repository<TypeEntity>
 
     constructor(
         private cls: ClsService,
@@ -34,11 +38,39 @@ export class ProductService {
         this.featureRepo = this.dataSource.getRepository(FeatureEntity)
         this.platformRepo = this.dataSource.getRepository(PlatformEntity)
         this.subscriptionRepo = this.dataSource.getRepository(SubscriptionEntity)
+        this.typeRepo = this.dataSource.getRepository(TypeEntity)
     }
 
     async getAllProducts() {
         let product = await this.productRepo.find({
-            relations: ['media', 'events', 'genres', 'features', 'platforms', 'subscriptions']
+            relations: ['media', 'events', 'genres', 'features', 'platforms', 'subscriptions'],
+            select: {
+                media: {
+                    id: true,
+                    url: true,
+                    type: true,
+                },
+                events: {
+                    id: true,
+                    name: true
+                },
+                genres: {
+                    id: true,
+                    name: true
+                },
+                features: {
+                    id: true,
+                    name: true
+                },
+                platforms: {
+                    id: true,
+                    name: true
+                },
+                subscriptions: {
+                    id: true,
+                    name: true
+                }
+            },
         })
         if (product.length === 0) throw new NotFoundException('Products not found')
 
@@ -62,29 +94,27 @@ export class ProductService {
         const existingProduct = await this.productRepo.findOne({ where: { media: { id: params.mediaId } } })
         if (existingProduct) throw new ConflictException("This media has already been used in another product entry")
 
-        const media = await this.mediaRepo.findOne({ where: { id: params.mediaId } });
-        if (!media) throw new NotFoundException("Media not found");
+        const media = await findOneOrFail(this.mediaRepo, params.mediaId, 'Media');
+        const events = await findManyOrFail(this.eventRepo, params.eventsId, 'Events');
+        const genres = await findManyOrFail(this.genreRepo, params.genresId, 'Genres');
+        const types = await findManyOrFail(this.typeRepo, params.typesId, 'Types');
+        const features = await findManyOrFail(this.featureRepo, params.featuresId, 'Features');
+        const platforms = await findManyOrFail(this.platformRepo, params.platformsId, 'Platforms');
+        const subscriptions = await findManyOrFail(this.subscriptionRepo, params.subscriptionsId, 'Subscriptions');
 
-        const events = await this.eventRepo.findBy({ id: In(params.eventsId) });
-        if (events.length !== params.eventsId.length) throw new NotFoundException("Some events not found");
+        let slug: string = generateSlug(params.name)
 
-        const genres = await this.genreRepo.findBy({ id: In(params.genresId) });
-        if (genres.length !== params.genresId.length) throw new NotFoundException("Some genres not found");
-
-        const features = await this.featureRepo.findBy({ id: In(params.featuresId) });
-        if (features.length !== params.featuresId.length) throw new NotFoundException("Some features not found");
-
-        const platforms = await this.platformRepo.findBy({ id: In(params.platformsId) });
-        if (platforms.length !== params.platformsId.length) throw new NotFoundException("Some platforms not found");
-
-        const subscriptions = await this.subscriptionRepo.findBy({ id: In(params.subscriptionsId) });
-        if (subscriptions.length !== params.subscriptionsId.length) throw new NotFoundException("Some subscriptions not found");
+        let discountedPrice: number = params.price;
+        if (typeof params.discount === 'number' && params.discount > 0) discountedPrice = params.price - (params.price * params.discount) / 100;
 
         const product = this.productRepo.create({
             ...params,
+            slug,
+            discountedPrice: Math.round(discountedPrice * 10) / 10,
             media,
             events,
             genres,
+            types,
             features,
             platforms,
             subscriptions
@@ -97,5 +127,19 @@ export class ProductService {
 
     async updateProduct() { }
 
-    async deleteProduct() { }
+    async deleteProduct(productId: number) {
+        const user = this.cls.get<UserEntity>('user');
+        if (user.role.name !== Role.ADMIN) throw new ForbiddenException('You do not have permission to delete product')
+
+        let product = await this.productRepo.findOne({
+            where: { id: productId },
+            relations: ['events', 'genres', 'types', 'features', 'platforms', 'subscriptions']
+        })
+        if (!product) throw new NotFoundException('Product not found')
+
+        await this.productRepo.save(product);
+        await this.productRepo.delete(productId)
+        return { message: 'Product deleted successfully' }
+
+    }
 }

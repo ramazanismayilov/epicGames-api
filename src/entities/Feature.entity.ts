@@ -9,7 +9,7 @@ export class FeatureEntity {
     @Column()
     name: string
 
-    @ManyToMany(() => ProductEntity, product => product.platforms, { onDelete: 'CASCADE' })
+    @ManyToMany(() => ProductEntity, product => product.platforms)
     products: ProductEntity[];
 
     @CreateDateColumn()

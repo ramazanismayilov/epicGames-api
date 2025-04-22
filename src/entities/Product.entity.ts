@@ -6,6 +6,7 @@ import { PlatformEntity } from "./Platform.entity";
 import { EventEntity } from "./Event.entity";
 import { SubscriptionEntity } from "./Subscription.entity";
 import { AgeRestriction } from "src/common/enums/ageRestriction.enum";
+import { TypeEntity } from "./Type.entity";
 
 @Entity('product')
 export class ProductEntity {
@@ -21,6 +22,9 @@ export class ProductEntity {
 
     @Column()
     name: string
+
+    @Column()
+    slug: string
 
     @Column()
     description: string
@@ -43,24 +47,28 @@ export class ProductEntity {
     @Column({ type: 'enum', enum: AgeRestriction, default: AgeRestriction.Age3 })
     ageRestriction: AgeRestriction
 
-    @ManyToMany(() => EventEntity, { onDelete: 'SET NULL' })
-    @JoinTable()
+    @ManyToMany(() => EventEntity, { cascade: true })
+    @JoinTable({ name: 'product_event' })
     events: EventEntity[];
 
-    @ManyToMany(() => GenreEntity, { onDelete: 'SET NULL' })
-    @JoinTable()
+    @ManyToMany(() => GenreEntity, { cascade: true })
+    @JoinTable({ name: 'product_genre' })
     genres: GenreEntity[];
 
-    @ManyToMany(() => FeatureEntity, { onDelete: 'SET NULL' })
-    @JoinTable()
+    @ManyToMany(() => TypeEntity, { cascade: true })
+    @JoinTable({ name: 'product_type' })
+    types: TypeEntity[];
+
+    @ManyToMany(() => FeatureEntity, { cascade: true })
+    @JoinTable({ name: 'product_feature' })
     features: FeatureEntity[];
 
-    @ManyToMany(() => PlatformEntity, { onDelete: 'SET NULL' })
-    @JoinTable()
+    @ManyToMany(() => PlatformEntity, { cascade: true })
+    @JoinTable({ name: 'product_platform' })
     platforms: PlatformEntity[];
 
-    @ManyToMany(() => SubscriptionEntity, { onDelete: 'SET NULL' })
-    @JoinTable()
+    @ManyToMany(() => SubscriptionEntity, { cascade: true })
+    @JoinTable({ name: 'product_subscription' })
     subscriptions: SubscriptionEntity[];
 
     @CreateDateColumn()

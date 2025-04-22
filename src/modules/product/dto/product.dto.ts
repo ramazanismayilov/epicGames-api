@@ -28,11 +28,6 @@ export class ProductDto {
     discount: number;
 
     @Type()
-    @IsNumber()
-    @Min(1)
-    discountedPrice: number;
-
-    @Type()
     @IsString()
     developer: string;
 
@@ -54,6 +49,11 @@ export class ProductDto {
     @IsArray()
     @IsNumber({}, { each: true })
     genresId: number[];
+
+    @Type()
+    @IsArray()
+    @IsNumber({}, { each: true })
+    typesId: number[];
 
     @Type()
     @IsArray()
