@@ -2,8 +2,8 @@ import { ConflictException, ForbiddenException, Injectable, NotFoundException } 
 import { InjectDataSource } from "@nestjs/typeorm";
 import { ClsService } from "nestjs-cls";
 import { ProductEntity } from "src/entities/Product.entity";
-import { DataSource, In, Repository } from "typeorm";
-import { AddProductDto } from "./dto/product.dto";
+import { DataSource, ILike, In, Repository } from "typeorm";
+import { AddProductDto, UpdateProductDto } from "./dto/product.dto";
 import { UserEntity } from "src/entities/User.entity";
 import { Role } from "src/common/enums/role.enum";
 import { MediaEntity } from "src/entities/Media.entity";
@@ -15,6 +15,7 @@ import { SubscriptionEntity } from "src/entities/Subscription.entity";
 import { TypeEntity } from "src/entities/Type.entity";
 import { findManyOrFail, findOneOrFail } from "src/common/utils/findEntitie.utils";
 import { generateSlug } from "src/common/utils/slug.utils";
+import { PaginationDto } from "src/common/dto/pagination.dto";
 
 @Injectable()
 export class ProductService {
@@ -41,9 +42,11 @@ export class ProductService {
         this.typeRepo = this.dataSource.getRepository(TypeEntity)
     }
 
-    async getAllProducts() {
-        let product = await this.productRepo.find({
-            relations: ['media', 'events', 'genres', 'features', 'platforms', 'subscriptions'],
+    async getAllProducts(params: PaginationDto) {
+        const { limit = 10, offset = 0 } = params;
+
+        let [products, total] = await this.productRepo.findAndCount({
+            relations: ['media', 'events', 'genres', 'types', 'features', 'platforms', 'subscriptions'],
             select: {
                 media: {
                     id: true,
@@ -55,6 +58,10 @@ export class ProductService {
                     name: true
                 },
                 genres: {
+                    id: true,
+                    name: true
+                },
+                types: {
                     id: true,
                     name: true
                 },
@@ -71,16 +78,55 @@ export class ProductService {
                     name: true
                 }
             },
+            skip: offset,
+            take: limit,
         })
-        if (product.length === 0) throw new NotFoundException('Products not found')
+        if (products.length === 0) throw new NotFoundException('Products not found')
 
-        return product
+        return {
+            data: products,
+            count: total,
+            limit,
+            offset,
+            nextPage: total > offset + limit ? offset + limit : null
+        }
     }
 
     async getProduct(productId: number) {
         let product = await this.productRepo.findOne({
             where: { id: productId },
-            relations: ['media', 'events', 'genres', 'features', 'platforms', 'subscriptions']
+            relations: ['media', 'events', 'genres', 'types', 'features', 'platforms', 'subscriptions'],
+            select: {
+                media: {
+                    id: true,
+                    url: true,
+                    type: true,
+                },
+                events: {
+                    id: true,
+                    name: true
+                },
+                genres: {
+                    id: true,
+                    name: true
+                },
+                types: {
+                    id: true,
+                    name: true
+                },
+                features: {
+                    id: true,
+                    name: true
+                },
+                platforms: {
+                    id: true,
+                    name: true
+                },
+                subscriptions: {
+                    id: true,
+                    name: true
+                }
+            },
         })
         if (!product) throw new NotFoundException('Product not found')
 
@@ -125,7 +171,74 @@ export class ProductService {
         return { message: 'Product successfully created', product };
     }
 
-    async updateProduct() { }
+    async updateProduct(productId: number, params: UpdateProductDto) {
+        const user = this.cls.get<UserEntity>('user');
+        if (user.role.name !== Role.ADMIN) throw new ForbiddenException('You do not have permission to update product')
+
+        let product = await this.productRepo.findOne({
+            where: { id: productId },
+            relations: ['events', 'genres', 'types', 'features', 'platforms', 'subscriptions']
+        })
+        if (!product) throw new NotFoundException('Product not found')
+
+        if (params.name) {
+            const slug: string = generateSlug(params.name);
+            product.slug = slug;
+        }
+
+        if (params.mediaId) {
+            const existingProduct = await this.productRepo.findOne({ where: { media: { id: params.mediaId } } });
+            if (existingProduct && existingProduct.id !== productId) throw new ConflictException('This media has already been used in another product entry');
+
+            const media = await this.mediaRepo.findOne({ where: { id: params.mediaId } })
+            if (!media) throw new NotFoundException('Media not found')
+            product.media = media
+        }
+
+        if (params.eventsId?.length) {
+            const events = await this.eventRepo.findBy({ id: In(params.eventsId) })
+            if (events.length !== params.eventsId.length) throw new NotFoundException('Some events not found')
+            product.events = events
+        }
+
+        if (params.genresId?.length) {
+            const genres = await this.genreRepo.findBy({ id: In(params.genresId) })
+            if (genres.length !== params.genresId.length) throw new NotFoundException('Some genres not found')
+            product.genres = genres
+        }
+
+        if (params.typesId?.length) {
+            const types = await this.typeRepo.findBy({ id: In(params.typesId) })
+            if (types.length !== params.typesId.length) throw new NotFoundException('Some types not found')
+            product.types = types
+        }
+
+        if (params.featuresId?.length) {
+            const features = await this.featureRepo.findBy({ id: In(params.featuresId) })
+            if (features.length !== params.featuresId.length) throw new NotFoundException('Some features not found')
+            product.features = features
+        }
+
+        if (params.platformsId?.length) {
+            const platforms = await this.platformRepo.findBy({ id: In(params.platformsId) })
+            if (platforms.length !== params.platformsId.length) throw new NotFoundException('Some platforms not found')
+            product.platforms = platforms
+        }
+
+        if (params.subscriptionsId?.length) {
+            const subscriptions = await this.subscriptionRepo.findBy({ id: In(params.subscriptionsId) })
+            if (subscriptions.length !== params.subscriptionsId.length) throw new NotFoundException('Some subscriptions not found')
+            product.subscriptions = subscriptions
+        }
+
+        Object.assign(product, {
+            name: params.name ?? product.name,
+            description: params.description ?? product.description,
+            price: params.price ?? product.price
+        });
+
+        return await this.productRepo.save(product);
+    }
 
     async deleteProduct(productId: number) {
         const user = this.cls.get<UserEntity>('user');

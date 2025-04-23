@@ -1,15 +1,16 @@
-import { Body, Controller, Delete, Get, Param, Post } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Query } from "@nestjs/common";
 import { ProductService } from "./product.service";
-import { AddProductDto } from "./dto/product.dto";
+import { AddProductDto, UpdateProductDto } from "./dto/product.dto";
 import { Auth } from "src/common/decorators/auth.decorator";
+import { PaginationDto } from "src/common/dto/pagination.dto";
 
 @Controller('products')
 export class ProductController {
     constructor(private productService: ProductService) { }
 
     @Get()
-    getAllProducts() {
-        return this.productService.getAllProducts()
+    getAllProducts(@Query() params: PaginationDto) {
+        return this.productService.getAllProducts(params)
     }
 
     @Get(':id')
@@ -21,6 +22,12 @@ export class ProductController {
     @Auth()
     addProduct(@Body() body: AddProductDto) {
         return this.productService.addProduct(body)
+    }
+
+    @Post(':id')
+    @Auth()
+    updateProduct(@Param('id') id: number, @Body() body: UpdateProductDto) {
+        return this.productService.updateProduct(id, body)
     }
 
     @Delete(':id')

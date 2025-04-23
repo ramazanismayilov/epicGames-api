@@ -24,6 +24,7 @@ export class NewsService {
     }
 
     async getAllNews(params: PaginationDto) {
+        const { limit = 10, offset = 0 } = params;
         const [news, total] = await this.newsRepo.findAndCount({
             relations: ['media'],
             select: {
@@ -33,8 +34,8 @@ export class NewsService {
                     type: true,
                 },
             },
-            skip: (params.page - 1) * params.pageSize,
-            take: params.pageSize,
+            skip: offset,
+            take: limit,
         });
 
         if (news.length === 0) throw new NotFoundException('News not found');
@@ -42,8 +43,9 @@ export class NewsService {
         return {
             data: news,
             count: total,
-            totalPage: Math.ceil(total / params.pageSize),
-            currentPage: params.page,
+            limit,
+            offset,
+            nextPage: total > offset + limit ? offset + limit : null
         };
     }
 

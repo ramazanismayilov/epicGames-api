@@ -1,14 +1,14 @@
 import { Type } from "class-transformer"
-import { IsNumber, Min } from "class-validator"
+import { IsOptional, IsPositive, Min } from "class-validator"
 
 export class PaginationDto {
     @Type()
-    @IsNumber()
-    @Min(1)
-    page: number
+    @IsOptional()
+    @IsPositive()
+    limit?: number;
 
     @Type()
-    @IsNumber()
-    @Min(1)
-    pageSize: number
+    @IsOptional()
+    @Min(0)
+    offset?: number;
 }
