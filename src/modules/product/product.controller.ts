@@ -9,8 +9,8 @@ export class ProductController {
     constructor(private productService: ProductService) { }
 
     @Get()
-    getAllProducts(@Query() params: PaginationDto) {
-        return this.productService.getAllProducts(params)
+    getAllProducts(@Query() paginationDto: PaginationDto) {
+        return this.productService.getAllProducts(paginationDto)
     }
 
     @Get(':id')

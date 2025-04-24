@@ -5,9 +5,9 @@ import { AgeRestriction } from "src/common/enums/ageRestriction.enum";
 
 export class ProductDto {
     @Type()
-    @IsString()
+    @IsArray()
     @IsUUID('4', { each: true })
-    mediaId: string;
+    mediaId: string[];
 
     @Type()
     @IsString()

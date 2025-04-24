@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, JoinTable, ManyToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, JoinTable, ManyToMany, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { MediaEntity } from "./Media.entity";
 import { GenreEntity } from "./Genre.entity";
 import { FeatureEntity } from "./Feature.entity";
@@ -13,12 +13,9 @@ export class ProductEntity {
     @PrimaryGeneratedColumn()
     id: number
 
-    @OneToOne(() => MediaEntity, { onDelete: 'SET NULL' })
-    @JoinColumn({
-        name: 'mediaId',
-        referencedColumnName: 'id',
-    })
-    media: MediaEntity;
+    @ManyToMany(() => MediaEntity)
+    @JoinTable({ name: 'product_media' })
+    media: MediaEntity[];
 
     @Column()
     name: string
