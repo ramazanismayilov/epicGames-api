@@ -1,4 +1,4 @@
-import { ConflictException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectDataSource } from "@nestjs/typeorm";
 import { ClsService } from "nestjs-cls";
 import { ProductEntity } from "src/entities/Product.entity";
@@ -15,6 +15,9 @@ import { SubscriptionEntity } from "src/entities/Subscription.entity";
 import { TypeEntity } from "src/entities/Type.entity";
 import { generateSlug } from "src/common/utils/slug.utils";
 import { PaginationDto } from "src/common/dto/pagination.dto";
+import { validatePriceAndDiscount } from "src/common/utils/validateFreeProduct.utils";
+import { calculateDiscountedPrice } from "src/common/utils/calculateDiscountPrice.utils";
+import { findEntitiesByIds } from "src/common/utils/findEntitie.utils";
 
 @Injectable()
 export class ProductService {
@@ -139,36 +142,22 @@ export class ProductService {
         const existingProduct = await this.productRepo.findOne({ where: { media: { id: In(params.mediaId) } } })
         if (existingProduct) throw new ConflictException("This media has already been used in another product entry")
 
-        const media = await this.mediaRepo.findBy({ id: In(params.mediaId) })
-        if (media.length !== params.mediaId.length) throw new NotFoundException('Some media not found')
-
-        const events = await this.eventRepo.findBy({ id: In(params.eventsId) })
-        if (events.length !== params.eventsId.length) throw new NotFoundException('Some events not found')
-
-        const genres = await this.genreRepo.findBy({ id: In(params.genresId) })
-        if (genres.length !== params.genresId.length) throw new NotFoundException('Some genres not found')
-
-        const types = await this.typeRepo.findBy({ id: In(params.typesId) })
-        if (types.length !== params.typesId.length) throw new NotFoundException('Some types not found')
-
-        const features = await this.featureRepo.findBy({ id: In(params.featuresId) })
-        if (features.length !== params.featuresId.length) throw new NotFoundException('Some features not found')
-
-        const platforms = await this.platformRepo.findBy({ id: In(params.platformsId) })
-        if (platforms.length !== params.platformsId.length) throw new NotFoundException('Some platforms not found')
-
-        const subscriptions = await this.subscriptionRepo.findBy({ id: In(params.subscriptionsId) })
-        if (subscriptions.length !== params.subscriptionsId.length) throw new NotFoundException('Some subscriptions not found')
+        const media = await findEntitiesByIds(this.mediaRepo, params.mediaId, 'media');
+        const events = await findEntitiesByIds(this.eventRepo, params.eventsId, 'events');
+        const genres = await findEntitiesByIds(this.genreRepo, params.genresId, 'genres');
+        const types = await findEntitiesByIds(this.typeRepo, params.typesId, 'types');
+        const features = await findEntitiesByIds(this.featureRepo, params.featuresId, 'features');
+        const platforms = await findEntitiesByIds(this.platformRepo, params.platformsId, 'platforms');
+        const subscriptions = await findEntitiesByIds(this.subscriptionRepo, params.subscriptionsId, 'subscriptions');
 
         let slug: string = generateSlug(params.name)
-
-        let discountedPrice: number = params.price;
-        if (typeof params.discount === 'number' && params.discount > 0) discountedPrice = params.price - (params.price * params.discount) / 100;
+        let discountedPrice = calculateDiscountedPrice(params.price, params.discount)
+        validatePriceAndDiscount(params.isFree, params.price, params.discount)
 
         const product = this.productRepo.create({
             ...params,
             slug,
-            discountedPrice: Math.round(discountedPrice * 10) / 10,
+            discountedPrice,
             media,
             events,
             genres,
@@ -201,57 +190,58 @@ export class ProductService {
             const existingProduct = await this.productRepo.findOne({ where: { media: { id: In(params.mediaId) } } })
             if (existingProduct) throw new ConflictException("This media has already been used in another product entry")
 
-            const media = await this.mediaRepo.findBy({ id: In(params.mediaId) })
-            if (media.length !== params.mediaId.length) throw new NotFoundException('Some media ids not found')
+            const media = await findEntitiesByIds(this.mediaRepo, params.mediaId, 'media');
             product.media = media
         }
 
         if (params.eventsId?.length) {
-            const events = await this.eventRepo.findBy({ id: In(params.eventsId) })
-            if (events.length !== params.eventsId.length) throw new NotFoundException('Some events not found')
+            const events = await findEntitiesByIds(this.eventRepo, params.eventsId, 'event');
             product.events = events
         }
 
         if (params.genresId?.length) {
-            const genres = await this.genreRepo.findBy({ id: In(params.genresId) })
-            if (genres.length !== params.genresId.length) throw new NotFoundException('Some genres not found')
+            const genres = await findEntitiesByIds(this.genreRepo, params.genresId, 'genre');
             product.genres = genres
         }
 
         if (params.typesId?.length) {
-            const types = await this.typeRepo.findBy({ id: In(params.typesId) })
-            if (types.length !== params.typesId.length) throw new NotFoundException('Some types not found')
+            const types = await findEntitiesByIds(this.typeRepo, params.typesId, 'type');
             product.types = types
         }
 
         if (params.featuresId?.length) {
-            const features = await this.featureRepo.findBy({ id: In(params.featuresId) })
-            if (features.length !== params.featuresId.length) throw new NotFoundException('Some features not found')
+            const features = await findEntitiesByIds(this.featureRepo, params.featuresId, 'feature');
             product.features = features
         }
 
         if (params.platformsId?.length) {
-            const platforms = await this.platformRepo.findBy({ id: In(params.platformsId) })
-            if (platforms.length !== params.platformsId.length) throw new NotFoundException('Some platforms not found')
+            const platforms = await findEntitiesByIds(this.platformRepo, params.platformsId, 'platform');
             product.platforms = platforms
         }
 
         if (params.subscriptionsId?.length) {
-            const subscriptions = await this.subscriptionRepo.findBy({ id: In(params.subscriptionsId) })
-            if (subscriptions.length !== params.subscriptionsId.length) throw new NotFoundException('Some subscriptions not found')
+            const subscriptions = await findEntitiesByIds(this.subscriptionRepo, params.subscriptionsId, 'subscription');
             product.subscriptions = subscriptions
         }
 
-        let discountedPrice = params.price ?? product.price;
-        if (params.discount && typeof params.discount === 'number' && params.discount > 0) discountedPrice = discountedPrice - (discountedPrice * params.discount) / 100;
+        if (params.isFree !== undefined) {
+            validatePriceAndDiscount(params.isFree, params.price, params.discount);
+            product.isFree = params.isFree;
+        }
+
+        const name = params.name ?? product.name
+        const description = params.description ?? product.description
+        const price = params.isFree ? 0 : params.price !== undefined && params.price >= 0 ? params.price : product.price;
+        const discount = params.isFree ? 0 : params.discount !== undefined && params.discount >= 0 ? params.discount : product.discount;
+        const discountedPrice = Math.round(calculateDiscountedPrice(price, discount) * 10) / 10;
 
         Object.assign(product, {
-            name: params.name ?? product.name,
-            description: params.description ?? product.description,
-            price: params.price ?? product.price,
-            discount: params.discount ?? product.discount,
-            discountedPrice: Math.round(discountedPrice * 10) / 10
-        })
+            name,
+            description,
+            price,
+            discount,
+            discountedPrice,
+        });
 
         let updatedProduct = await this.productRepo.save(product)
         return { message: "Product updated successfully", updatedProduct }

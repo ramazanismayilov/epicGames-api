@@ -1,6 +1,6 @@
 import { PartialType } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsArray, IsEnum, IsNumber, IsString, IsUUID, Min } from "class-validator";
+import { IsArray, IsBoolean, IsEnum, IsNumber, IsString, IsUUID, Min } from "class-validator";
 import { AgeRestriction } from "src/common/enums/ageRestriction.enum";
 
 export class ProductDto {
@@ -18,13 +18,17 @@ export class ProductDto {
     description: string;
 
     @Type()
+    @IsBoolean()
+    isFree: false
+
+    @Type()
     @IsNumber()
-    @Min(1)
+    @Min(0)
     price: number;
 
     @Type()
     @IsNumber()
-    @Min(1)
+    @Min(0)
     discount: number;
 
     @Type()

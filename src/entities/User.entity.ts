@@ -1,5 +1,7 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryColumn, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { RoleEntity } from "./Role.entity";
+import { CartItemEntity } from "./CartItem.entity";
+import { WishlistItemEntity } from "./WishlistItem.entity";
 
 @Entity('user')
 export class UserEntity {
@@ -41,12 +43,18 @@ export class UserEntity {
 
     @Column({ type: 'int', nullable: true })
     otpCode?: number | null;
-    
+
     @Column({ type: 'timestamp', nullable: true })
     otpExpiredAt?: Date | null;
 
     @ManyToOne(() => RoleEntity, (role) => role.users, { onDelete: 'SET NULL' })
     role: RoleEntity;
+
+    @OneToMany(() => CartItemEntity, (cartItem) => cartItem.user)
+    cartItems: CartItemEntity[];
+
+    @OneToMany(() => WishlistItemEntity, (wishlistItem) => wishlistItem.user)
+    wishlistItems: WishlistItemEntity[];
 
     @CreateDateColumn()
     createdAt: Date;

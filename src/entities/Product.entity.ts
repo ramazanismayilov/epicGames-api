@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, JoinTable, ManyToMany, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { MediaEntity } from "./Media.entity";
 import { GenreEntity } from "./Genre.entity";
 import { FeatureEntity } from "./Feature.entity";
@@ -25,6 +25,9 @@ export class ProductEntity {
 
     @Column()
     description: string
+
+    @Column({ default: false })
+    isFree: boolean
 
     @Column({ type: 'float' })
     price: number;
