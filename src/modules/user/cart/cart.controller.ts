@@ -9,22 +9,27 @@ export class CartController {
     constructor(private cartService: CartService) { }
 
     @Get()
-    getMyCartItems() {
-        return this.cartService.getMyCartItems();
+    getUserCartItems() {
+        return this.cartService.getUserCartItems();
     }
 
     @Post('add')
-    addToCartItem(@Body() body: CartDto) {
-        return this.cartService.addToCartItem(body);
+    addProductToCart(@Body() body: CartDto) {
+        return this.cartService.addProductToCart(body);
     }
 
     @Post(':id/quantity')
-    updateCartItemQuantity(@Param('id') id: number, @Body() body: UpdateCartItemQuantityDto) {
-        return this.cartService.updateCartItemQuantity(id, body);
+    updateProductQuantityInCart(@Param('id') id: number, @Body() body: UpdateCartItemQuantityDto) {
+        return this.cartService.updateProductQuantityInCart(id, body);
     }
 
     @Delete(':id')
-    deleteToCartItem(@Param('id') id: number) {
-        return this.cartService.deleteToCartItem(id);
+    removeProductFromCart (@Param('id') id: number) {
+        return this.cartService.removeProductFromCart(id);
+    }
+
+    @Delete()
+    clearCart() {
+        return this.cartService.clearCart();
     }
 }

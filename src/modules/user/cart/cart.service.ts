@@ -20,7 +20,7 @@ export class CartService {
         this.productRepo = this.dataSource.getRepository(ProductEntity)
     }
 
-    async getMyCartItems() {
+    async getUserCartItems() {
         const user = this.cls.get<UserEntity>('user');
         if (!user) throw new NotFoundException('User not found');
 
@@ -32,6 +32,7 @@ export class CartService {
                     id: true,
                     name: true,
                     description: true,
+                    isFree: true,
                     price: true,
                     discount: true,
                     discountedPrice: true
@@ -45,12 +46,12 @@ export class CartService {
                 }
             }
         });
-        if (userCart.length === 0) throw new NotFoundException('The user has no products in their cart');
+        if (userCart.length === 0) throw new NotFoundException('Your cart is empty');
 
         return userCart;
     }
 
-    async addToCartItem(params: CartDto) {
+    async addProductToCart(params: CartDto) {
         let user = this.cls.get<UserEntity>('user')
         if (!user) throw new NotFoundException('User not found')
 
@@ -62,24 +63,7 @@ export class CartService {
                 user: { id: user.id },
                 product: { id: params.productId },
             },
-            relations: ['user', 'product'],
-            select: {
-                product: {
-                    id: true,
-                    name: true,
-                    description: true,
-                    price: true,
-                    discount: true,
-                    discountedPrice: true
-                },
-                user: {
-                    id: true,
-                    firstname: true,
-                    lastname: true,
-                    username: true,
-                    email: true
-                }
-            }
+            relations: ['product']
         });
 
         if (!cartItem) {
@@ -99,33 +83,33 @@ export class CartService {
         }
 
         await this.cartRepo.save(cartItem!);
-        return { message: 'Product added to cart successfully', cartItem };
+        return { message: 'Product successfully added to your cart', cartItem };
     }
 
-    async updateCartItemQuantity(cartId: number, params: UpdateCartItemQuantityDto) {
+    async updateProductQuantityInCart(cartId: number, params: UpdateCartItemQuantityDto) {
         const user = this.cls.get<UserEntity>('user');
         if (!user) throw new NotFoundException('User not found');
-    
+
         const cartItem = await this.cartRepo.findOne({
             where: { id: cartId, user: { id: user.id } },
             relations: ['product'],
         });
-        if (!cartItem) throw new NotFoundException('Cart item not found');
-    
+        if (!cartItem) throw new NotFoundException('Product not found in your cart');
+
         cartItem.quantity += params.change;
-    
+
         if (cartItem.quantity <= 0) {
             await this.cartRepo.delete(cartItem.id);
-            return { message: 'Cart item removed because quantity reached zero or less' };
+            return { message: 'Product removed from cart because its quantity is zero or less' };
         }
-    
+
         cartItem.totalPrice = cartItem.product.discountedPrice * cartItem.quantity;
         await this.cartRepo.save(cartItem);
-    
-        return { message: 'Cart item quantity updated successfully', cartItem };
+
+        return { message: 'Product quantity updated successfully in your cart', cartItem };
     }
 
-    async deleteToCartItem(cartId: number) {
+    async removeProductFromCart(cartId: number) {
         let user = this.cls.get<UserEntity>('user')
         if (!user) throw new NotFoundException('User not found')
 
@@ -133,9 +117,23 @@ export class CartService {
             where: { id: cartId, user: { id: user.id } },
             relations: ['user']
         });
-        if (!cartItem) throw new NotFoundException('Cart item not found')
+        if (!cartItem) throw new NotFoundException('Product not found in your cart')
 
         await this.cartRepo.remove(cartItem);
-        return { message: 'Cart item deleted successfully' };
+        return { message: 'Product removed successfully from your cart' };
+    }
+
+    async clearCart() {
+        let user = this.cls.get<UserEntity>('user');
+        if (!user) throw new NotFoundException('User not found');
+
+        let cartItems = await this.cartRepo.find({
+            where: { user: { id: user.id } },
+            relations: ['user'],
+        });
+        if (cartItems.length === 0) throw new NotFoundException('Your cart is empty');
+
+        await this.cartRepo.remove(cartItems);
+        return { message: 'Your cart has been cleared successfully' };
     }
 }

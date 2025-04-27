@@ -1,6 +1,30 @@
-import { Controller } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post } from "@nestjs/common";
+import { WishlistService } from "./wishlist.service";
+import { Auth } from "src/common/decorators/auth.decorator";
+import { WishlistDto } from "./dto/wishlist.dto";
 
-@Controller('Wishlist')
+@Auth()
+@Controller('wishlist')
 export class WishlistController {
-    constructor() { }
+    constructor(private wishlistService: WishlistService) { }
+
+    @Get()
+    getUserWishlist() {
+        return this.wishlistService.getUserWishlist();
+    }
+
+    @Post('toggle')
+    toggleUserWishlistItem(@Body() body: WishlistDto) {
+        return this.wishlistService.toggleUserWishlistItem(body);
+    }
+
+    @Delete(':id')
+    removeProductFromWishlist(@Param('id') id: number) {
+        return this.wishlistService.removeProductFromWishlist(id);
+    }
+
+    @Delete()
+    clearWishlist() {
+        return this.wishlistService.clearWishlist();
+    }
 }
