@@ -2,6 +2,7 @@ import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGenerate
 import { RoleEntity } from "./Role.entity";
 import { CartItemEntity } from "./CartItem.entity";
 import { WishlistItemEntity } from "./WishlistItem.entity";
+import { CheckoutEntity } from "./Checkout.entity";
 
 @Entity('user')
 export class UserEntity {
@@ -55,6 +56,9 @@ export class UserEntity {
 
     @OneToMany(() => WishlistItemEntity, (wishlistItem) => wishlistItem.user)
     wishlistItems: WishlistItemEntity[];
+
+    @OneToMany(() => CheckoutEntity, (checkout) => checkout.user)
+    checkouts: CheckoutEntity[];
 
     @CreateDateColumn()
     createdAt: Date;

@@ -23,6 +23,7 @@ import { TypeModule } from './modules/type/type.module';
 import { PlatformModule } from './modules/platform/platform.module';
 import { SubscriptionModule } from './modules/subscription/subscription.module';
 import { ProductModule } from './modules/product/product.module';
+import { CheckoutModule } from './modules/checkout/checkout.module';
 
 @Module({
   imports: [
@@ -104,7 +105,8 @@ import { ProductModule } from './modules/product/product.module';
     TypeModule,
     PlatformModule,
     SubscriptionModule,
-    ProductModule
+    ProductModule,
+    CheckoutModule
   ],
   controllers: [AppController],
   providers: [AppService],
