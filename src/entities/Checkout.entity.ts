@@ -1,7 +1,8 @@
-import { Column, CreateDateColumn, Entity, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { UserEntity } from "./User.entity";
-import { ProductEntity } from "./Product.entity";
 import { CheckoutStatus } from "src/common/enums/checkout.enum";
+import { CheckoutItemEntity } from "./CheckoutItem.entity";
+import { Expose } from "class-transformer";
 
 @Entity('checkout')
 export class CheckoutEntity {
@@ -11,9 +12,9 @@ export class CheckoutEntity {
     @ManyToOne(() => UserEntity, (user) => user.checkouts)
     user: UserEntity;
 
-    @ManyToMany(() => ProductEntity)
-    @JoinTable({ name: 'product_checkout' })
-    products: ProductEntity[];
+    @Expose()
+    @OneToMany(() => CheckoutItemEntity, item => item.checkout, { cascade: true })
+    items: CheckoutItemEntity[];
 
     @Column('float')
     totalAmount: number;

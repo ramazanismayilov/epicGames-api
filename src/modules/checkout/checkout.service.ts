@@ -4,13 +4,16 @@ import { ClsService } from "nestjs-cls";
 import { CheckoutEntity } from "src/entities/Checkout.entity";
 import { UserEntity } from "src/entities/User.entity";
 import { DataSource, In, Repository } from "typeorm";
-import { CheckoutDto } from "./dto/checkout.dto";
+import { AddProductToCheckoutDto, CheckoutDto } from "./dto/checkout.dto";
 import { ProductEntity } from "src/entities/Product.entity";
 import { CheckoutStatus } from "src/common/enums/checkout.enum";
+import { CheckoutItemEntity } from "src/entities/CheckoutItem.entity";
+import { classToPlain } from "class-transformer";
 
 @Injectable()
 export class CheckoutService {
     private checkoutRepo: Repository<CheckoutEntity>
+    private checkoutItemRepo: Repository<CheckoutItemEntity>
     private productRepo: Repository<ProductEntity>
     private userRepo: Repository<UserEntity>
 
@@ -19,14 +22,20 @@ export class CheckoutService {
         @InjectDataSource() private dataSource: DataSource
     ) {
         this.checkoutRepo = this.dataSource.getRepository(CheckoutEntity)
+        this.checkoutItemRepo = this.dataSource.getRepository(CheckoutItemEntity)
         this.productRepo = this.dataSource.getRepository(ProductEntity)
         this.userRepo = this.dataSource.getRepository(UserEntity)
     }
 
     async getAllCheckouts() {
         const checkouts = await this.checkoutRepo.find({
-            relations: ['user', 'products'],
+            relations: ['user', 'items', 'items.product'],
             select: {
+                id: true,
+                totalAmount: true,
+                status: true,
+                createdAt: true,
+                updatedAt: true,
                 user: {
                     id: true,
                     firstname: true,
@@ -35,26 +44,38 @@ export class CheckoutService {
                     email: true,
                     balance: true,
                 },
-                products: {
-                    id: true,
-                    name: true,
-                    isFree: true,
+                items: {
+                    quantity: true,
                     price: true,
-                    discount: true,
-                    discountedPrice: true
+                    product: {
+                        id: true,
+                        name: true,
+                        isFree: true,
+                        price: true,
+                        discount: true,
+                        discountedPrice: true,
+                    }
                 }
             }
         });
-        if (checkouts.length === 0) throw new NotFoundException('Checkouts not found')
+
+        if (checkouts.length === 0) {
+            throw new NotFoundException('Checkouts not found');
+        }
 
         return checkouts;
     }
 
     async getCheckoutById(checkoutId: number) {
-        const checkout = await this.checkoutRepo.find({
+        const checkout = await this.checkoutRepo.findOne({
             where: { id: checkoutId },
-            relations: ['user', 'products'],
+            relations: ['user', 'items', 'items.product'],
             select: {
+                id: true,
+                totalAmount: true,
+                status: true,
+                createdAt: true,
+                updatedAt: true,
                 user: {
                     id: true,
                     firstname: true,
@@ -63,28 +84,30 @@ export class CheckoutService {
                     email: true,
                     balance: true,
                 },
-                products: {
-                    id: true,
-                    name: true,
-                    isFree: true,
+                items: {
+                    quantity: true,
                     price: true,
-                    discount: true,
-                    discountedPrice: true
+                    product: {
+                        id: true,
+                        name: true,
+                        isFree: true,
+                        price: true,
+                        discount: true,
+                        discountedPrice: true,
+                    }
                 }
             }
         });
-        if (checkout.length === 0) throw new NotFoundException('Checkout not found')
+
+        if (!checkout) throw new NotFoundException('Checkout not found');
 
         return checkout;
     }
 
-    async getCheckoutsByUser() {
-        let user = this.cls.get<UserEntity>('user')
-        if (!user) throw new NotFoundException('User not found')
-
+    async getCheckoutsByUser(userId: number) {
         const checkouts = await this.checkoutRepo.find({
-            where: { user: { id: user.id } },
-            relations: ['user', 'products'],
+            where: { user: { id: userId } },
+            relations: ['user', 'items', 'items.product'],
             select: {
                 user: {
                     id: true,
@@ -94,31 +117,35 @@ export class CheckoutService {
                     email: true,
                     balance: true,
                 },
-                products: {
-                    id: true,
-                    name: true,
-                    isFree: true,
+                items: {
+                    quantity: true,
                     price: true,
-                    discount: true,
-                    discountedPrice: true
+                    product: {
+                        id: true,
+                        name: true,
+                        isFree: true,
+                        price: true,
+                        discount: true,
+                        discountedPrice: true
+                    }
                 }
             }
         });
+
         if (!checkouts.length) throw new NotFoundException('No checkouts found for this user');
         return checkouts;
     }
 
     async createCheckout(params: CheckoutDto) {
-        let user = this.cls.get<UserEntity>('user')
-        if (!user) throw new NotFoundException('User not found')
+        const user = this.cls.get<UserEntity>('user');
+        if (!user) throw new NotFoundException('User not found');
 
-        let products = await this.productRepo.find({
-            where: { id: In(params.productIds) },
+        const products = await this.productRepo.find({
+            where: { id: In(params.items.map(item => item.productId)) },
             select: ['id', 'name', 'isFree', 'price', 'discount', 'discountedPrice'],
-        })
-        if (products.length !== params.productIds.length) throw new NotFoundException('Some products not found')
+        });
 
-        const totalAmount = products.reduce((sum, product) => sum + product.discountedPrice, 0)
+        if (products.length !== params.items.length) throw new NotFoundException('Some products not found');
 
         const checkout = this.checkoutRepo.create({
             user: {
@@ -129,24 +156,72 @@ export class CheckoutService {
                 email: user.email,
                 balance: user.balance
             },
-            products,
-            totalAmount,
-            status: CheckoutStatus.INPROGRESS
+            totalAmount: 0,
+            status: CheckoutStatus.INPROGRESS,
+            items: [],
         });
 
+        let totalAmount = 0;
+        const items: CheckoutItemEntity[] = [];
+
+        for (const checkoutItem of params.items) {
+            const product = products.find(p => p.id === checkoutItem.productId);
+            const quantity = checkoutItem.quantity;
+
+            if (!product) throw new NotFoundException(`Product with ID ${checkoutItem.productId} not found`);
+            if (quantity === 0) continue;
+
+            const item = new CheckoutItemEntity();
+            item.product = product;
+            item.checkout = checkout;
+            item.quantity = quantity;
+            item.price = product.discountedPrice * quantity;
+            totalAmount += item.price;
+            items.push(item);
+        }
+
+        if (items.length === 0) throw new BadRequestException('No valid products selected for checkout');
+
+        checkout.totalAmount = totalAmount;
+        checkout.items = items;
+
         await this.checkoutRepo.save(checkout);
-        return { message: 'Checkout created successfully', checkout };
+
+        // Transform the checkout object to avoid circular reference
+        return { message: 'Checkout created successfully', checkout: classToPlain(checkout) };
     }
 
     async completeCheckout(checkoutId: number) {
         const checkout = await this.checkoutRepo.findOne({
             where: { id: checkoutId },
-            relations: ['user', 'products']
+            relations: ['user', 'items', 'items.product'],
+            select: {
+                user: {
+                    id: true,
+                    firstname: true,
+                    lastname: true,
+                    username: true,
+                    email: true,
+                    balance: true,
+                },
+                items: {
+                    quantity: true,
+                    price: true,
+                    product: {
+                        id: true,
+                        name: true,
+                        isFree: true,
+                        price: true,
+                        discount: true,
+                        discountedPrice: true
+                    }
+                }
+            }
         });
 
         if (!checkout) throw new NotFoundException('Checkout not found');
-        if (checkout.status === CheckoutStatus.CANCELED) throw new BadRequestException('Checkout has already been canceled')
-        if (checkout.status === CheckoutStatus.COMPLETED) throw new BadRequestException('Checkout has already been completed')
+        if (checkout.status === CheckoutStatus.CANCELED) throw new BadRequestException('Checkout has already been canceled');
+        if (checkout.status === CheckoutStatus.COMPLETED) throw new BadRequestException('Checkout has already been completed');
 
         const user = await this.userRepo.findOneBy({ id: checkout.user.id });
         if (!user) throw new NotFoundException('User not found');
@@ -162,17 +237,74 @@ export class CheckoutService {
 
         checkout.status = CheckoutStatus.COMPLETED;
         await this.checkoutRepo.save(checkout);
-        return { message: 'Checkout completed successfully', checkout };
+
+        return {
+            message: 'Checkout completed successfully',
+            checkout
+        };
     }
 
     async cancelCheckout(checkoutId: number) {
-        const checkout = await this.checkoutRepo.findOne({ where: { id: checkoutId } });
+        const checkout = await this.checkoutRepo.findOne({
+            where: { id: checkoutId },
+            relations: ['items']
+        });
+
         if (!checkout) throw new NotFoundException('Checkout not found');
 
-        if (checkout.status === CheckoutStatus.COMPLETED) throw new BadRequestException('Completed checkout cannot be canceled');
+        if (checkout.status === CheckoutStatus.COMPLETED) {
+            throw new BadRequestException('Completed checkout cannot be canceled');
+        }
+
+        if (checkout.status === CheckoutStatus.CANCELED) {
+            throw new BadRequestException('Checkout is already canceled');
+        }
 
         checkout.status = CheckoutStatus.CANCELED;
         await this.checkoutRepo.save(checkout);
+
         return { message: 'Checkout canceled successfully' };
+    }
+
+    async addProductToCheckout(checkoutId: number, params: AddProductToCheckoutDto) {
+        const checkout = await this.checkoutRepo.findOne({
+            where: { id: checkoutId },
+            relations: ['items'],
+        });
+        if (!checkout) throw new NotFoundException('Checkout not found');
+
+        const product = await this.productRepo.findOne({ where: { id: params.productId } });
+        if (!product) throw new NotFoundException('Product not found');
+
+        const productCheckout = new CheckoutItemEntity();
+        productCheckout.product = product;
+        productCheckout.checkout = checkout;
+        productCheckout.quantity = params.quantity ?? 1;
+        productCheckout.price = product.discountedPrice * (params.quantity ?? 1);
+
+        await this.checkoutItemRepo.save(productCheckout);
+
+        checkout.totalAmount += productCheckout.price;
+
+        await this.checkoutRepo.save(checkout);
+        return { message: 'Product added to checkout successfully', checkout };
+    }
+
+    async removeProductFromCheckout(checkoutId: number, productId: number) {
+        const checkout = await this.checkoutRepo.findOne({
+            where: { id: checkoutId },
+            relations: ['items', 'items.product'],
+        });
+        if (!checkout) throw new NotFoundException('Checkout not found');
+
+        const item = checkout.items.find(i => i.product.id === productId);
+        if (!item) throw new NotFoundException('Product not found in checkout');
+
+        checkout.totalAmount -= item.price;
+
+        await this.checkoutItemRepo.remove(item);
+        await this.checkoutRepo.save(checkout);
+
+        return { message: 'Product removed from checkout successfully', checkout };
     }
 }
