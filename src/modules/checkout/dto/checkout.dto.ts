@@ -7,17 +7,7 @@ export class CheckoutDto {
     @IsArray()
     items: CheckoutItemDto[];
 }
-class CheckoutItemDto {
-    @Type()
-    @IsNumber()
-    productId: number;
-
-    @Type()
-    @IsNumber()
-    @IsOptional()
-    quantity?: number;
-}
-export class AddProductToCheckoutDto {
+export class CheckoutItemDto {
     @Type()
     @IsNumber()
     productId: number;

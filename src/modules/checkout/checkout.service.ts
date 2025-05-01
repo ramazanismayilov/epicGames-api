@@ -4,7 +4,7 @@ import { ClsService } from "nestjs-cls";
 import { CheckoutEntity } from "src/entities/Checkout.entity";
 import { UserEntity } from "src/entities/User.entity";
 import { DataSource, In, Repository } from "typeorm";
-import { AddProductToCheckoutDto, CheckoutDto } from "./dto/checkout.dto";
+import { CheckoutDto, CheckoutItemDto } from "./dto/checkout.dto";
 import { ProductEntity } from "src/entities/Product.entity";
 import { CheckoutStatus } from "src/common/enums/checkout.enum";
 import { CheckoutItemEntity } from "src/entities/CheckoutItem.entity";
@@ -221,18 +221,18 @@ export class CheckoutService {
         return { message: 'Checkout deleted successfully' };
     }
 
-    async addProductToCheckout(checkoutId: number, params: AddProductToCheckoutDto) {
+    async addProductToCheckout(checkoutId: number, params: CheckoutItemDto) {
         const checkout = await this.checkoutRepo.findOne({
             where: { id: checkoutId },
             relations: ['items', 'items.product'],
         });
         if (!checkout) throw new NotFoundException('Checkout not found');
-    
+
         const product = await this.productRepo.findOne({ where: { id: params.productId } });
         if (!product) throw new NotFoundException('Product not found');
-    
+
         const quantityToAdd = params.quantity ?? 1;
-    
+
         const items: CheckoutItemEntity[] = [];
 
         const existingItem = checkout.items.find(i => i.product.id === product.id);
@@ -243,17 +243,17 @@ export class CheckoutService {
         } else {
             const productCheckout = new CheckoutItemEntity();
             productCheckout.product = product;
-            productCheckout.checkout = checkout; 
+            productCheckout.checkout = checkout;
             productCheckout.quantity = quantityToAdd;
             productCheckout.price = product.discountedPrice * quantityToAdd;
             items.push(productCheckout)
             await this.checkoutItemRepo.save(productCheckout);
         }
-    
+
         checkout.totalAmount = checkout.items.reduce((sum, i) => sum + i.price, 0);
         await this.checkoutRepo.save(checkout);
-    
-        return { message: 'Product added to checkout successfully'};
+
+        return { message: 'Product added to checkout successfully' };
     }
 
     async removeProductFromCheckout(checkoutId: number, checkoutItemId: number) {
