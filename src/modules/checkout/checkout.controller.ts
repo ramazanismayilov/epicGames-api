@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post } from "@nestjs/common";
 import { CheckoutService } from "./checkout.service";
 import { AddProductToCheckoutDto, CheckoutDto } from "./dto/checkout.dto";
 import { Auth } from "src/common/decorators/auth.decorator";
@@ -33,9 +33,9 @@ export class CheckoutController {
         return this.checkoutService.completeCheckout(id)
     }
 
-    @Post(':id/cancel')
-    cancelCheckout(@Param('id') id: number) {
-        return this.checkoutService.cancelCheckout(id)
+    @Delete(':id')
+    deleteCheckout(@Param('id') id: number) {
+        return this.checkoutService.deleteCheckout(id)
     }
 
     @Post(':id/addProduct')
@@ -43,8 +43,8 @@ export class CheckoutController {
         return this.checkoutService.addProductToCheckout(id, body)
     }
 
-    @Post(':checkoutId/removeProduct/:productId')
-    removeProductFromCheckout(@Param('checkoutId') checkoutId: number, @Param('productId') productId: number) {
-        return this.checkoutService.removeProductFromCheckout(checkoutId, productId);
+    @Delete(':checkoutId/checkoutItems/:checkoutItemId')
+    removeProductFromCheckout(@Param('checkoutId') checkoutId: number, @Param('checkoutItemId') checkoutItemId: number) {
+        return this.checkoutService.removeProductFromCheckout(checkoutId, checkoutItemId);
     }
 }

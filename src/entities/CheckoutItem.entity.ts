@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { CheckoutEntity } from "./Checkout.entity";
 import { ProductEntity } from "./Product.entity";
 import { Exclude } from "class-transformer";
@@ -10,7 +10,11 @@ export class CheckoutItemEntity {
 
     @Exclude()
     @ManyToOne(() => CheckoutEntity, checkout => checkout.items, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'checkoutId' })
     checkout: CheckoutEntity;
+
+    @Column()
+    checkoutId: number;
 
     @ManyToOne(() => ProductEntity, { eager: true })
     product: ProductEntity;
@@ -19,5 +23,5 @@ export class CheckoutItemEntity {
     quantity: number;
 
     @Column('float')
-    price: number; 
+    price: number;
 }

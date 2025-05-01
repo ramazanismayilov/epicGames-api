@@ -50,6 +50,7 @@ export class CheckoutService {
                     product: {
                         id: true,
                         name: true,
+                        media: true,
                         isFree: true,
                         price: true,
                         discount: true,
@@ -58,10 +59,7 @@ export class CheckoutService {
                 }
             }
         });
-
-        if (checkouts.length === 0) {
-            throw new NotFoundException('Checkouts not found');
-        }
+        if (checkouts.length === 0) throw new NotFoundException('Checkouts not found');
 
         return checkouts;
     }
@@ -90,6 +88,7 @@ export class CheckoutService {
                     product: {
                         id: true,
                         name: true,
+                        media: true,
                         isFree: true,
                         price: true,
                         discount: true,
@@ -98,7 +97,6 @@ export class CheckoutService {
                 }
             }
         });
-
         if (!checkout) throw new NotFoundException('Checkout not found');
 
         return checkout;
@@ -123,6 +121,7 @@ export class CheckoutService {
                     product: {
                         id: true,
                         name: true,
+                        media: true,
                         isFree: true,
                         price: true,
                         discount: true,
@@ -131,8 +130,8 @@ export class CheckoutService {
                 }
             }
         });
+        if (!checkouts.length) throw new NotFoundException('No checkouts found for this user')
 
-        if (!checkouts.length) throw new NotFoundException('No checkouts found for this user');
         return checkouts;
     }
 
@@ -142,7 +141,7 @@ export class CheckoutService {
 
         const products = await this.productRepo.find({
             where: { id: In(params.items.map(item => item.productId)) },
-            select: ['id', 'name', 'isFree', 'price', 'discount', 'discountedPrice'],
+            select: ['id', 'name', 'media', 'isFree', 'price', 'discount', 'discountedPrice'],
         });
 
         if (products.length !== params.items.length) throw new NotFoundException('Some products not found');
@@ -166,7 +165,7 @@ export class CheckoutService {
 
         for (const checkoutItem of params.items) {
             const product = products.find(p => p.id === checkoutItem.productId);
-            const quantity = checkoutItem.quantity;
+            const quantity = checkoutItem.quantity ?? 1;
 
             if (!product) throw new NotFoundException(`Product with ID ${checkoutItem.productId} not found`);
             if (quantity === 0) continue;
@@ -186,41 +185,13 @@ export class CheckoutService {
         checkout.items = items;
 
         await this.checkoutRepo.save(checkout);
-
-        // Transform the checkout object to avoid circular reference
         return { message: 'Checkout created successfully', checkout: classToPlain(checkout) };
     }
 
     async completeCheckout(checkoutId: number) {
-        const checkout = await this.checkoutRepo.findOne({
-            where: { id: checkoutId },
-            relations: ['user', 'items', 'items.product'],
-            select: {
-                user: {
-                    id: true,
-                    firstname: true,
-                    lastname: true,
-                    username: true,
-                    email: true,
-                    balance: true,
-                },
-                items: {
-                    quantity: true,
-                    price: true,
-                    product: {
-                        id: true,
-                        name: true,
-                        isFree: true,
-                        price: true,
-                        discount: true,
-                        discountedPrice: true
-                    }
-                }
-            }
-        });
+        const checkout = await this.checkoutRepo.findOne({ where: { id: checkoutId }, relations: ['user', 'items', 'items.product'] });
 
         if (!checkout) throw new NotFoundException('Checkout not found');
-        if (checkout.status === CheckoutStatus.CANCELED) throw new BadRequestException('Checkout has already been canceled');
         if (checkout.status === CheckoutStatus.COMPLETED) throw new BadRequestException('Checkout has already been completed');
 
         const user = await this.userRepo.findOneBy({ id: checkout.user.id });
@@ -237,74 +208,72 @@ export class CheckoutService {
 
         checkout.status = CheckoutStatus.COMPLETED;
         await this.checkoutRepo.save(checkout);
-
-        return {
-            message: 'Checkout completed successfully',
-            checkout
-        };
+        return { message: 'Checkout completed successfully' };
     }
 
-    async cancelCheckout(checkoutId: number) {
-        const checkout = await this.checkoutRepo.findOne({
-            where: { id: checkoutId },
-            relations: ['items']
-        });
+    async deleteCheckout(checkoutId: number) {
+        const checkout = await this.checkoutRepo.findOne({ where: { id: checkoutId } });
 
         if (!checkout) throw new NotFoundException('Checkout not found');
+        if (checkout.status === CheckoutStatus.COMPLETED) throw new BadRequestException('Completed checkout cannot be deleted');
 
-        if (checkout.status === CheckoutStatus.COMPLETED) {
-            throw new BadRequestException('Completed checkout cannot be canceled');
-        }
-
-        if (checkout.status === CheckoutStatus.CANCELED) {
-            throw new BadRequestException('Checkout is already canceled');
-        }
-
-        checkout.status = CheckoutStatus.CANCELED;
-        await this.checkoutRepo.save(checkout);
-
-        return { message: 'Checkout canceled successfully' };
+        await this.checkoutRepo.delete(checkoutId)
+        return { message: 'Checkout deleted successfully' };
     }
 
     async addProductToCheckout(checkoutId: number, params: AddProductToCheckoutDto) {
         const checkout = await this.checkoutRepo.findOne({
             where: { id: checkoutId },
-            relations: ['items'],
-        });
-        if (!checkout) throw new NotFoundException('Checkout not found');
-
-        const product = await this.productRepo.findOne({ where: { id: params.productId } });
-        if (!product) throw new NotFoundException('Product not found');
-
-        const productCheckout = new CheckoutItemEntity();
-        productCheckout.product = product;
-        productCheckout.checkout = checkout;
-        productCheckout.quantity = params.quantity ?? 1;
-        productCheckout.price = product.discountedPrice * (params.quantity ?? 1);
-
-        await this.checkoutItemRepo.save(productCheckout);
-
-        checkout.totalAmount += productCheckout.price;
-
-        await this.checkoutRepo.save(checkout);
-        return { message: 'Product added to checkout successfully', checkout };
-    }
-
-    async removeProductFromCheckout(checkoutId: number, productId: number) {
-        const checkout = await this.checkoutRepo.findOne({
-            where: { id: checkoutId },
             relations: ['items', 'items.product'],
         });
         if (!checkout) throw new NotFoundException('Checkout not found');
+    
+        const product = await this.productRepo.findOne({ where: { id: params.productId } });
+        if (!product) throw new NotFoundException('Product not found');
+    
+        const quantityToAdd = params.quantity ?? 1;
+    
+        const items: CheckoutItemEntity[] = [];
 
-        const item = checkout.items.find(i => i.product.id === productId);
-        if (!item) throw new NotFoundException('Product not found in checkout');
-
-        checkout.totalAmount -= item.price;
-
-        await this.checkoutItemRepo.remove(item);
+        const existingItem = checkout.items.find(i => i.product.id === product.id);
+        if (existingItem) {
+            existingItem.quantity += quantityToAdd;
+            existingItem.price = product.discountedPrice * existingItem.quantity;
+            await this.checkoutItemRepo.save(existingItem);
+        } else {
+            const productCheckout = new CheckoutItemEntity();
+            productCheckout.product = product;
+            productCheckout.checkout = checkout; 
+            productCheckout.quantity = quantityToAdd;
+            productCheckout.price = product.discountedPrice * quantityToAdd;
+            items.push(productCheckout)
+            await this.checkoutItemRepo.save(productCheckout);
+        }
+    
+        checkout.totalAmount = checkout.items.reduce((sum, i) => sum + i.price, 0);
         await this.checkoutRepo.save(checkout);
+    
+        return { message: 'Product added to checkout successfully'};
+    }
 
-        return { message: 'Product removed from checkout successfully', checkout };
+    async removeProductFromCheckout(checkoutId: number, checkoutItemId: number) {
+        const checkout = await this.checkoutRepo.findOne({ where: { id: checkoutId }, relations: ['items'] })
+        if (!checkout) throw new NotFoundException('Checkout not found')
+
+        const item = checkout.items.find(i => i.id === checkoutItemId)
+        if (!item) throw new NotFoundException('Checkout item not found in checkout')
+
+        await this.checkoutItemRepo.remove(item)
+
+        const updatedCheckout = await this.checkoutRepo.findOne({ where: { id: checkoutId }, relations: ['items'] })
+
+        if (!updatedCheckout || updatedCheckout.items.length === 0) {
+            await this.checkoutRepo.delete(checkoutId)
+            return { message: 'Checkout deleted successfully' }
+        }
+
+        updatedCheckout.totalAmount = updatedCheckout.items.reduce((sum, i) => sum + i.price, 0)
+        await this.checkoutRepo.save(updatedCheckout)
+        return { message: 'Product removed from checkout successfully' }
     }
 }
