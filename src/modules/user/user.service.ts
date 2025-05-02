@@ -28,6 +28,8 @@ export class UserService {
     }
 
     async getUsers() {
+        const currentUser = this.cls.get<UserEntity>('user');
+        if (currentUser.role.name !== Role.ADMIN) throw new ForbiddenException('You do not have permission for this operation');
         let user = await this.userRepo.find({
             relations: ['role'],
             select: {
@@ -42,6 +44,8 @@ export class UserService {
     }
 
     async getUser(userId: number) {
+        const currentUser = this.cls.get<UserEntity>('user');
+        if (currentUser.role.name !== Role.ADMIN) throw new ForbiddenException('You do not have permission for this operation');
         let user = await this.userRepo.findOne({
             where: { id: userId },
             relations: ['role'],

@@ -12,11 +12,13 @@ export class UserController {
     constructor(private userService: UserService) { }
 
     @Get()
+    @Auth()
     getUsers() {
         return this.userService.getUsers()
     }
 
     @Get(':id')
+    @Auth()
     getUser(@Param('id') id: number) {
         return this.userService.getUser(id)
     }
