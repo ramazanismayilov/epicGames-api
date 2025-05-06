@@ -28,6 +28,8 @@ export class UserService {
     }
 
     async getUsers() {
+        console.log(process.env.JWT_SECRET);
+        
         const currentUser = this.cls.get<UserEntity>('user');
         if (currentUser.role.name !== Role.ADMIN) throw new ForbiddenException('You do not have permission for this operation');
         let user = await this.userRepo.find({

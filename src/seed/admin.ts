@@ -20,15 +20,15 @@ async function bootstrap() {
         await roleRepo.save(adminRole);
     }
 
-    const adminEmail = 'ismayiloff522@gmail.com';
+    const adminEmail = 'ramazanismayilovh@gmail.com';
     const existingAdmin = await userRepo.findOne({ where: { email: adminEmail } });
 
     if (!existingAdmin) {
         const password = await bcrypt.hash('admin123', 10);
         const adminUser = userRepo.create({
-            firstname: 'Ramazan',
-            lastname: 'İsmayılov',
-            username: 'ramazanismayilovh',
+            firstname: 'Admin',
+            lastname: 'Adminov',
+            username: 'admin',
             email: adminEmail,
             password,
             dateOfBirth: '2005-10-22',

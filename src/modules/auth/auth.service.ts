@@ -120,21 +120,11 @@ export class AuthService {
     }
 
     async refreshToken(params: RefreshTokenDto) {
-        try {
-            const payload = this.jwt.verify(params.refreshToken)
+        const user = await this.userRepo.findOne({ where: { refreshToken: params.refreshToken } });
+        if (!user) throw new UnauthorizedException('User not found');
 
-            const user = await this.userRepo.findOne({ where: { id: payload.userId } });
-            if (!user) throw new UnauthorizedException('User not found')
-
-            const newsAccessToken = this.jwt.sign({ userId: user.id }, { expiresIn: '15m' })
-            return {
-                token: {
-                    newsAccessToken
-                }
-            }
-        } catch (error) {
-            throw new UnauthorizedException('Invalid or expired refresh token');
-        }
+        const accessToken = this.jwt.sign({ userId: user.id }, { expiresIn: '15m' });
+        return { accessToken };
     }
 
     async resendOtp(params: ResentOtpDto) {
