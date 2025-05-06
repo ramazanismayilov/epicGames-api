@@ -1,8 +1,8 @@
 import { Body, Controller, Delete, Get, Param, Post, Query } from "@nestjs/common";
 import { NewsService } from "./news.service";
-import { Auth } from "src/common/decorators/auth.decorator";
+import { Auth } from "../../common/decorators/auth.decorator";
 import { AddNewsDto, UpdateNewsDto } from "./dto/news.dto";
-import { PaginationDto } from "src/common/dto/pagination.dto";
+import { PaginationDto } from "../../common/dto/pagination.dto";
 
 @Controller('news')
 export class NewsController {

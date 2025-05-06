@@ -5,7 +5,7 @@ import { FeatureEntity } from "./Feature.entity";
 import { PlatformEntity } from "./Platform.entity";
 import { EventEntity } from "./Event.entity";
 import { SubscriptionEntity } from "./Subscription.entity";
-import { AgeRestriction } from "src/common/enums/ageRestriction.enum";
+import { AgeRestriction } from "../common/enums/ageRestriction.enum";
 import { TypeEntity } from "./Type.entity";
 
 @Entity('product')

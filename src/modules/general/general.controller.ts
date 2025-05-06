@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post } from "@nestjs/common";
-import { Auth } from "src/common/decorators/auth.decorator";
+import { Auth } from "../../common/decorators/auth.decorator";
 import { RoleCreateDto } from "./dto/addRole.dto";
 import { GeneralService } from "./general.service";
 import { MenuCreateDto } from "./dto/addMenu.dto";

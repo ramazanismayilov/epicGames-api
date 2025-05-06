@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post } from "@nestjs/common";
-import { Auth } from "src/common/decorators/auth.decorator";
+import { Auth } from "../../common/decorators/auth.decorator";
 import { TypeService } from "./type.service";
 import { AddTypeDto, UpdateTypeDto } from "./dto/type.dto";
 

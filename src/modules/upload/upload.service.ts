@@ -2,11 +2,11 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import { InjectDataSource } from "@nestjs/typeorm";
 import { isUUID } from "class-validator";
 import { ClsService } from "nestjs-cls";
-import { Media } from "src/common/enums/media.enum";
-import { Role } from "src/common/enums/role.enum";
-import { MediaEntity } from "src/entities/Media.entity";
-import { UserEntity } from "src/entities/User.entity";
-import { CloudinaryService } from "src/libs/cloudinary/cloudinary.service";
+import { Media } from "../../common/enums/media.enum";
+import { Role } from "../../common/enums/role.enum";
+import { MediaEntity } from "../../entities/Media.entity";
+import { UserEntity } from "../../entities/User.entity";
+import { CloudinaryService } from "../../libs/cloudinary/cloudinary.service";
 import { DataSource, Repository } from "typeorm";
 
 @Injectable()

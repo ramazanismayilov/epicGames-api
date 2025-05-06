@@ -8,7 +8,8 @@
   "scripts": {
     "build": "nest build",
     "start": "nest start",
-    "start:dev": "nest start --watch"
+    "start:dev": "nest start --watch",
+    "seed": "ts-node src/seed/index.ts"
   },
   "dependencies": {
     "@nestjs-modules/mailer": "^2.0.2",

@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Post } from "@nestjs/common";
 import { UserService } from "./user.service";
-import { Auth } from "src/common/decorators/auth.decorator";
+import { Auth } from "../../common/decorators/auth.decorator";
 import { IncreaseBalanceDto } from "./dto/increaseBalance.dto";
 import { ProfileUpdateDto } from "./dto/updateProfile.dto";
 import { EmailUpdateDto } from "./dto/updateEmail.dto";

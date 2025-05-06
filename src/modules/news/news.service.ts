@@ -1,13 +1,13 @@
 import { ConflictException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectDataSource } from "@nestjs/typeorm";
 import { ClsService } from "nestjs-cls";
-import { Role } from "src/common/enums/role.enum";
-import { NewsEntity } from "src/entities/News.entity";
-import { UserEntity } from "src/entities/User.entity";
+import { Role } from "../../common/enums/role.enum";
+import { NewsEntity } from "../../entities/News.entity";
+import { UserEntity } from "../../entities/User.entity";
 import { DataSource, Repository } from "typeorm";
 import { AddNewsDto, UpdateNewsDto } from "./dto/news.dto";
-import { MediaEntity } from "src/entities/Media.entity";
-import { PaginationDto } from "src/common/dto/pagination.dto";
+import { MediaEntity } from "../../entities/Media.entity";
+import { PaginationDto } from "../../common/dto/pagination.dto";
 
 @Injectable()
 export class NewsService {

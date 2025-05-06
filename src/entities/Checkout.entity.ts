@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { UserEntity } from "./User.entity";
-import { CheckoutStatus } from "src/common/enums/checkout.enum";
+import { CheckoutStatus } from "../common/enums/checkout.enum";
 import { CheckoutItemEntity } from "./CheckoutItem.entity";
 import { Expose } from "class-transformer";
 

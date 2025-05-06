@@ -1,11 +1,11 @@
 import { Controller, Delete, Get, Param, Post, UploadedFiles, UseInterceptors } from "@nestjs/common";
-import { Auth } from "src/common/decorators/auth.decorator";
+import { Auth } from "../../common/decorators/auth.decorator";
 import { UploadService } from "./upload.service";
 import { FilesInterceptor } from "@nestjs/platform-express";
 import { memoryStorage } from "multer";
 import { ApiBody, ApiConsumes } from "@nestjs/swagger";
-import { UPLOAD_MEDIA_MAX_SIZE } from "src/common/constants/upload.constant";
-import { mediaFileFilter } from "src/common/utils/upload.utils";
+import { UPLOAD_MEDIA_MAX_SIZE } from "../../common/constants/upload.constant";
+import { mediaFileFilter } from "../../common/utils/upload.utils";
 
 @Controller('upload')
 export class UploadController {

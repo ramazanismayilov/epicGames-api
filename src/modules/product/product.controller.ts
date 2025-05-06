@@ -1,8 +1,8 @@
 import { Body, Controller, Delete, Get, Param, Post, Query } from "@nestjs/common";
 import { ProductService } from "./product.service";
 import { AddProductDto, UpdateProductDto } from "./dto/product.dto";
-import { Auth } from "src/common/decorators/auth.decorator";
-import { PaginationDto } from "src/common/dto/pagination.dto";
+import { Auth } from "../../common/decorators/auth.decorator";
+import { PaginationDto } from "../../common/dto/pagination.dto";
 
 @Controller('products')
 export class ProductController {

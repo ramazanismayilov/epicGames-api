@@ -48,6 +48,12 @@ export class UserEntity {
     @Column({ type: 'timestamp', nullable: true })
     otpExpiredAt?: Date | null;
 
+    @Column({ type: 'varchar', nullable: true })
+    refreshToken: string | null;
+    
+    @Column({ type: 'timestamp', nullable: true })
+    refreshTokenDate: Date | null;
+
     @ManyToOne(() => RoleEntity, (role) => role.users, { onDelete: 'SET NULL' })
     role: RoleEntity;
 

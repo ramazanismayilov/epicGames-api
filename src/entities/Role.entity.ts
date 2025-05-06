@@ -1,7 +1,7 @@
 import { Column, CreateDateColumn, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { UserEntity } from "./User.entity";
 import { MenuEntity } from "./Menu.entity";
-import { Role } from "src/common/enums/role.enum";
+import { Role } from "../common/enums/role.enum";
 
 @Entity('role')
 export class RoleEntity {

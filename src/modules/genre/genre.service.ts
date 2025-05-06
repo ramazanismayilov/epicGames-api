@@ -2,9 +2,9 @@ import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/commo
 import { InjectDataSource } from "@nestjs/typeorm";
 import { ClsService } from "nestjs-cls";
 import { DataSource, Repository } from "typeorm";
-import { UserEntity } from "src/entities/User.entity";
-import { Role } from "src/common/enums/role.enum";
-import { GenreEntity } from "src/entities/Genre.entity";
+import { UserEntity } from "../../entities/User.entity";
+import { Role } from "../../common/enums/role.enum";
+import { GenreEntity } from "../../entities/Genre.entity";
 import { AddGenreDto, UpdateGenreDto } from "./dto/genre.dto";
 
 @Injectable()

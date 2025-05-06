@@ -1,4 +1,4 @@
-import { Media } from 'src/common/enums/media.enum';
+import { Media } from '../common/enums/media.enum';
 import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity('media')

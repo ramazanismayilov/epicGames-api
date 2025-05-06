@@ -1,12 +1,12 @@
-import { Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectDataSource } from "@nestjs/typeorm";
-import { RoleEntity } from "src/entities/Role.entity";
+import { RoleEntity } from "../../entities/Role.entity";
 import { DataSource, In, Repository } from "typeorm";
 import { RoleCreateDto } from "./dto/addRole.dto";
-import { MenuEntity } from "src/entities/Menu.entity";
+import { MenuEntity } from "../../entities/Menu.entity";
 import { MenuCreateDto } from "./dto/addMenu.dto";
 import { ClsService } from "nestjs-cls";
-import { UserEntity } from "src/entities/User.entity";
+import { UserEntity } from "../../entities/User.entity";
 
 @Injectable()
 export class GeneralService {

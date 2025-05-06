@@ -1,17 +1,17 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectDataSource } from "@nestjs/typeorm";
-import { UserEntity } from "src/entities/User.entity";
+import { UserEntity } from "../../entities/User.entity";
 import { DataSource, Repository } from "typeorm";
 import { IncreaseBalanceDto } from "./dto/increaseBalance.dto";
 import { ClsService } from "nestjs-cls";
 import { ProfileUpdateDto } from "./dto/updateProfile.dto";
-import { generateOtpExpireDate, generateOtpNumber } from "src/common/utils/randomNumber.utils";
+import { generateOtpExpireDate, generateOtpNumber } from "../../common/utils/randomNumber.utils";
 import { MailerService } from "@nestjs-modules/mailer";
 import { VerifyNewEmailDto } from "./dto/verifyNewEmail.dto";
 import { EmailUpdateDto } from "./dto/updateEmail.dto";
-import { RoleEntity } from "src/entities/Role.entity";
+import { RoleEntity } from "../../entities/Role.entity";
 import { SetUserRoleDto } from "./dto/setUserRole.dto";
-import { Role } from "src/common/enums/role.enum";
+import { Role } from "../../common/enums/role.enum";
 
 @Injectable()
 export class UserService {

@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Post } from "@nestjs/common";
 import { CartService } from "./cart.service";
 import { CartDto, UpdateCartItemQuantityDto } from "./dto/cart.dto";
-import { Auth } from "src/common/decorators/auth.decorator";
+import { Auth } from "../../../common/decorators/auth.decorator";
 
 @Auth()
 @Controller('carts')

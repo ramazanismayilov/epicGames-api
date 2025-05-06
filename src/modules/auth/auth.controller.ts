@@ -4,7 +4,7 @@ import { RegisterDto } from "./dto/register.dto";
 import { VerifyOtpDto } from "./dto/verify.dto";
 import { LoginDto } from "./dto/login.dto";
 import { RefreshTokenDto } from "./dto/refreshToken.dto";
-import { Auth } from "src/common/decorators/auth.decorator";
+import { Auth } from "../../common/decorators/auth.decorator";
 import { ResetPasswordDto } from "./dto/reset-password.dto";
 import { CreateForgetPasswordDto } from "./dto/create-forget-password.dto";
 import { ConfirmForgetPaswordDto } from "./dto/confirm-forget-password.dto";

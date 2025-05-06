@@ -1,11 +1,11 @@
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectDataSource } from "@nestjs/typeorm";
 import { ClsService } from "nestjs-cls";
-import { FeatureEntity } from "src/entities/Feature.entity";
+import { FeatureEntity } from "../../entities/Feature.entity";
 import { DataSource, Repository } from "typeorm";
 import { AddFeatureDto, UpdateFeatureDto } from "./dto/feature.dto";
-import { UserEntity } from "src/entities/User.entity";
-import { Role } from "src/common/enums/role.enum";
+import { UserEntity } from "../../entities/User.entity";
+import { Role } from "../../common/enums/role.enum";
 
 @Injectable()
 export class FeatureService {

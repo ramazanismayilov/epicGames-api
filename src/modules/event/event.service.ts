@@ -1,11 +1,11 @@
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectDataSource } from "@nestjs/typeorm";
 import { ClsService } from "nestjs-cls";
-import { EventEntity } from "src/entities/Event.entity";
+import { EventEntity } from "../../entities/Event.entity";
 import { DataSource, Repository } from "typeorm";
 import { AddEventDto, UpdateEventDto } from "./dto/event.dto";
-import { UserEntity } from "src/entities/User.entity";
-import { Role } from "src/common/enums/role.enum";
+import { UserEntity } from "../../entities/User.entity";
+import { Role } from "../../common/enums/role.enum";
 
 @Injectable()
 export class EventService {

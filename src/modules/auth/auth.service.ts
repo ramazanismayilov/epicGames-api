@@ -1,12 +1,12 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { InjectDataSource } from "@nestjs/typeorm";
-import { UserEntity } from "src/entities/User.entity";
+import { UserEntity } from "../../entities/User.entity";
 import { DataSource, MoreThan, Repository } from "typeorm";
 import { RegisterDto } from "./dto/register.dto";
 import * as bcrypt from 'bcrypt';
 import { v4 } from 'uuid'
-import { generateOtpExpireDate, generateOtpNumber } from "src/common/utils/randomNumber.utils";
+import { generateOtpExpireDate, generateOtpNumber } from "../../common/utils/randomNumber.utils";
 import { MailerService } from "@nestjs-modules/mailer";
 import { VerifyOtpDto } from "./dto/verify.dto";
 import { LoginDto } from "./dto/login.dto";
@@ -14,13 +14,13 @@ import { RefreshTokenDto } from "./dto/refreshToken.dto";
 import { ResetPasswordDto } from "./dto/reset-password.dto";
 import { ClsService } from "nestjs-cls";
 import { CreateForgetPasswordDto } from "./dto/create-forget-password.dto";
-import { UserActivationEntity } from "src/entities/UserActivation.entity";
+import { UserActivationEntity } from "../../entities/UserActivation.entity";
 import { addMinutes } from "date-fns";
 import { ConfirmForgetPaswordDto } from "./dto/confirm-forget-password.dto";
-import { validatePasswords } from "src/common/utils/password.utils";
+import { validatePasswords } from "../../common/utils/password.utils";
 import { ResentOtpDto } from "./dto/resent-otp.dto";
-import { Role } from "src/common/enums/role.enum";
-import { RoleEntity } from "src/entities/Role.entity";
+import { Role } from "../../common/enums/role.enum";
+import { RoleEntity } from "../../entities/Role.entity";
 
 @Injectable()
 export class AuthService {
@@ -50,8 +50,13 @@ export class AuthService {
         let checkPassword = await bcrypt.compare(params.password, user.password);
         if (!checkPassword) throw new UnauthorizedException('Email or passsword is wrong');
 
-        const accessToken = this.jwt.sign({ userId: user.id }, { expiresIn: '15m' });
-        const refreshToken = this.jwt.sign({ userId: user.id }, { expiresIn: '7d' });
+        let accessToken = this.jwt.sign({ userId: user.id }, { expiresIn: '15m' });
+        const refreshToken = v4()
+        const refreshTokenDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+        user.refreshToken = refreshToken;
+        user.refreshTokenDate = refreshTokenDate;
+        await this.userRepo.save(user);
 
         return {
             message: 'Login is successfully',

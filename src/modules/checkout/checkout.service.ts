@@ -1,13 +1,13 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectDataSource } from "@nestjs/typeorm";
 import { ClsService } from "nestjs-cls";
-import { CheckoutEntity } from "src/entities/Checkout.entity";
-import { UserEntity } from "src/entities/User.entity";
+import { CheckoutEntity } from "../../entities/Checkout.entity";
+import { UserEntity } from "../../entities/User.entity";
 import { DataSource, In, Repository } from "typeorm";
 import { CheckoutDto, CheckoutItemDto } from "./dto/checkout.dto";
-import { ProductEntity } from "src/entities/Product.entity";
-import { CheckoutStatus } from "src/common/enums/checkout.enum";
-import { CheckoutItemEntity } from "src/entities/CheckoutItem.entity";
+import { ProductEntity } from "../../entities/Product.entity";
+import { CheckoutStatus } from "../../common/enums/checkout.enum";
+import { CheckoutItemEntity } from "../../entities/CheckoutItem.entity";
 import { classToPlain } from "class-transformer";
 
 @Injectable()

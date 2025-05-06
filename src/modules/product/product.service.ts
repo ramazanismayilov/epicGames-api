@@ -1,23 +1,23 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectDataSource } from "@nestjs/typeorm";
 import { ClsService } from "nestjs-cls";
-import { ProductEntity } from "src/entities/Product.entity";
+import { ProductEntity } from "../../entities/Product.entity";
 import { DataSource, In, Repository } from "typeorm";
 import { AddProductDto, UpdateProductDto } from "./dto/product.dto";
-import { UserEntity } from "src/entities/User.entity";
-import { Role } from "src/common/enums/role.enum";
-import { MediaEntity } from "src/entities/Media.entity";
-import { EventEntity } from "src/entities/Event.entity";
-import { GenreEntity } from "src/entities/Genre.entity";
-import { FeatureEntity } from "src/entities/Feature.entity";
-import { PlatformEntity } from "src/entities/Platform.entity";
-import { SubscriptionEntity } from "src/entities/Subscription.entity";
-import { TypeEntity } from "src/entities/Type.entity";
-import { generateSlug } from "src/common/utils/slug.utils";
-import { PaginationDto } from "src/common/dto/pagination.dto";
-import { validatePriceAndDiscount } from "src/common/utils/validateFreeProduct.utils";
-import { calculateDiscountedPrice } from "src/common/utils/calculateDiscountPrice.utils";
-import { findEntitiesByIds } from "src/common/utils/findEntitie.utils";
+import { UserEntity } from "../../entities/User.entity";
+import { Role } from "../../common/enums/role.enum";
+import { MediaEntity } from "../../entities/Media.entity";
+import { EventEntity } from "../../entities/Event.entity";
+import { GenreEntity } from "../../entities/Genre.entity";
+import { FeatureEntity } from "../../entities/Feature.entity";
+import { PlatformEntity } from "../../entities/Platform.entity";
+import { SubscriptionEntity } from "../../entities/Subscription.entity";
+import { TypeEntity } from "../../entities/Type.entity";
+import { generateSlug } from "../../common/utils/slug.utils";
+import { PaginationDto } from "../../common/dto/pagination.dto";
+import { validatePriceAndDiscount } from "../../common/utils/validateFreeProduct.utils";
+import { calculateDiscountedPrice } from "../../common/utils/calculateDiscountPrice.utils";
+import { findEntitiesByIds } from "../../common/utils/findEntitie.utils";
 
 @Injectable()
 export class ProductService {

@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectDataSource } from "@nestjs/typeorm";
 import { ClsService } from "nestjs-cls";
-import { ProductEntity } from "src/entities/Product.entity";
-import { UserEntity } from "src/entities/User.entity";
-import { WishlistItemEntity } from "src/entities/WishlistItem.entity";
+import { ProductEntity } from "../../../entities/Product.entity";
+import { UserEntity } from "../../../entities/User.entity";
+import { WishlistItemEntity } from "../../../entities/WishlistItem.entity";
 import { DataSource, Repository } from "typeorm";
 import { WishlistDto } from "./dto/wishlist.dto";
 

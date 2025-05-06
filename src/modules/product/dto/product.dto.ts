@@ -1,7 +1,7 @@
 import { PartialType } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsArray, IsBoolean, IsEnum, IsNumber, IsString, IsUUID, Min } from "class-validator";
-import { AgeRestriction } from "src/common/enums/ageRestriction.enum";
+import { AgeRestriction } from "../../../common/enums/ageRestriction.enum";
 
 export class ProductDto {
     @Type()

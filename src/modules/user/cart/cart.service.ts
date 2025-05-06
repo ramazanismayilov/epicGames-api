@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectDataSource } from "@nestjs/typeorm";
 import { ClsService } from "nestjs-cls";
-import { CartItemEntity } from "src/entities/CartItem.entity";
-import { ProductEntity } from "src/entities/Product.entity";
-import { UserEntity } from "src/entities/User.entity";
+import { CartItemEntity } from "../../../entities/CartItem.entity";
+import { ProductEntity } from "../../../entities/Product.entity";
+import { UserEntity } from "../../../entities/User.entity";
 import { DataSource, Repository } from "typeorm";
 import { CartDto, UpdateCartItemQuantityDto } from "./dto/cart.dto";
 

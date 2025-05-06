@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Post } from "@nestjs/common";
 import { FeatureService } from "./feature.service";
 import { AddFeatureDto, UpdateFeatureDto } from "./dto/feature.dto";
-import { Auth } from "src/common/decorators/auth.decorator";
+import { Auth } from "../../common/decorators/auth.decorator";
 
 @Controller('features')
 export class FeatureController {
