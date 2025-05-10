@@ -28,11 +28,14 @@ export class UserService {
     }
 
     async getUsers() {
-        console.log(process.env.JWT_SECRET);
-        
         const currentUser = this.cls.get<UserEntity>('user');
-        if (currentUser.role.name !== Role.ADMIN) throw new ForbiddenException('You do not have permission for this operation');
-        let user = await this.userRepo.find({
+        if (!currentUser) throw new ForbiddenException('User not found in context');  // Ensure user is defined
+        if (!currentUser.role || !currentUser.role.name) throw new ForbiddenException('User role not defined'); // Ensure role is defined
+        if (currentUser.role.name !== Role.ADMIN) {
+            throw new ForbiddenException('You do not have permission for this operation');
+        }
+        
+        let users = await this.userRepo.find({
             relations: ['role'],
             select: {
                 role: {
@@ -41,9 +44,11 @@ export class UserService {
                 }
             }
         });
-        if (!user) throw new NotFoundException('User not found')
-        return user
+        if (!users || users.length === 0) throw new NotFoundException('Users not found');
+        
+        return users;
     }
+    
 
     async getUser(userId: number) {
         const currentUser = this.cls.get<UserEntity>('user');
