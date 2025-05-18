@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException, Scope } from "@nestjs/common";
 import { InjectDataSource } from "@nestjs/typeorm";
 import { UserEntity } from "../../entities/User.entity";
 import { DataSource, Repository } from "typeorm";
@@ -13,7 +13,7 @@ import { RoleEntity } from "../../entities/Role.entity";
 import { SetUserRoleDto } from "./dto/setUserRole.dto";
 import { Role } from "../../common/enums/role.enum";
 
-@Injectable()
+@Injectable({ scope: Scope.DEFAULT })
 export class UserService {
     private userRepo: Repository<UserEntity>
     private roleRepo: Repository<RoleEntity>
@@ -29,12 +29,13 @@ export class UserService {
 
     async getUsers() {
         const currentUser = this.cls.get<UserEntity>('user');
-        if (!currentUser) throw new ForbiddenException('User not found in context');  // Ensure user is defined
-        if (!currentUser.role || !currentUser.role.name) throw new ForbiddenException('User role not defined'); // Ensure role is defined
-        if (currentUser.role.name !== Role.ADMIN) {
-            throw new ForbiddenException('You do not have permission for this operation');
-        }
+        console.log("Currentuser", currentUser);
         
+        if (!currentUser) throw new ForbiddenException('User not found in context');  
+        if (!currentUser.role || !currentUser.role.name) throw new ForbiddenException('User role not defined');
+        if (currentUser.role.name !== Role.ADMIN) throw new ForbiddenException('You do not have permission for this operation');
+        
+
         let users = await this.userRepo.find({
             relations: ['role'],
             select: {
@@ -49,10 +50,7 @@ export class UserService {
         return users;
     }
     
-
     async getUser(userId: number) {
-        const currentUser = this.cls.get<UserEntity>('user');
-        if (currentUser.role.name !== Role.ADMIN) throw new ForbiddenException('You do not have permission for this operation');
         let user = await this.userRepo.findOne({
             where: { id: userId },
             relations: ['role'],

@@ -11,14 +11,20 @@ export class AuthGuard implements CanActivate {
         let req = context.switchToHttp().getRequest()
 
         let token = req.headers.authorization || ''
+        console.log("Token: ", token);
+        
         token = token.split(' ')[1];
         if (!token) throw new UnauthorizedException('unauthorized');
 
         try {
             let payload = this.jwt.verify(token);
+            console.log("Payload:", payload);
+            
             if (!payload.userId) throw new UnauthorizedException('Invalid token payload');
 
             let user = await this.userService.getUser(payload.userId);
+            console.log("User", user);
+            
             if (!user) throw new UnauthorizedException('User not found');
 
             req.user = user;
@@ -26,7 +32,7 @@ export class AuthGuard implements CanActivate {
             this.cls.set('user', user);
             return true
         } catch (error) {
-            console.log("Error", error);
+            // console.log("Error", error);
             throw new UnauthorizedException();
         }
     }
