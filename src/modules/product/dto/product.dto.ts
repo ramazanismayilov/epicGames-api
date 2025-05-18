@@ -1,6 +1,6 @@
 import { PartialType } from "@nestjs/swagger";
-import { Type } from "class-transformer";
-import { IsArray, IsBoolean, IsEnum, IsNumber, IsString, IsUUID, Min } from "class-validator";
+import { Transform, Type } from "class-transformer";
+import { IsArray, IsBoolean, IsEnum, IsNumber, IsOptional, IsPositive, IsString, IsUUID, Min } from "class-validator";
 import { AgeRestriction } from "../../../common/enums/ageRestriction.enum";
 
 export class ProductDto {
@@ -77,3 +77,56 @@ export class ProductDto {
 
 export class AddProductDto extends ProductDto { }
 export class UpdateProductDto extends PartialType(ProductDto) { }
+export class GetProductsDto {
+    @Type()
+    @IsOptional()
+    @IsPositive()
+    limit?: number;
+
+    @Type()
+    @IsOptional()
+    @Min(1)
+    page?: number;
+
+    @Type()
+    @IsOptional()
+    @IsString()
+    search?: string;
+
+    @Type()
+    @IsOptional()
+    @IsArray()
+    @Transform(({ value }) => (Array.isArray(value) ? value.map(Number) : [Number(value)]))
+    eventId?: number[];
+
+    @Type()
+    @IsOptional()
+    @IsArray()
+    @Transform(({ value }) => (Array.isArray(value) ? value.map(Number) : [Number(value)]))
+    genreId?: number[];
+
+    @Type()
+    @IsOptional()
+    @IsArray()
+    @Transform(({ value }) => (Array.isArray(value) ? value.map(Number) : [Number(value)]))
+    typeId?: number[];
+
+    @Type()
+    @IsOptional()
+    @IsArray()
+    @Transform(({ value }) => (Array.isArray(value) ? value.map(Number) : [Number(value)]))
+    featureId?: number[];
+
+    @Type()
+    @IsOptional()
+    @IsArray()
+    @Transform(({ value }) => (Array.isArray(value) ? value.map(Number) : [Number(value)]))
+    platformId?: number[];
+
+    @Type()
+    @IsOptional()
+    @IsArray()
+    @Transform(({ value }) => (Array.isArray(value) ? value.map(Number) : [Number(value)]))
+    subscriptionId?: number[];
+}
+

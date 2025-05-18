@@ -2,8 +2,8 @@ import { BadRequestException, ConflictException, ForbiddenException, Injectable,
 import { InjectDataSource } from "@nestjs/typeorm";
 import { ClsService } from "nestjs-cls";
 import { ProductEntity } from "../../entities/Product.entity";
-import { DataSource, In, Repository } from "typeorm";
-import { AddProductDto, UpdateProductDto } from "./dto/product.dto";
+import { DataSource, FindOptionsWhere, ILike, In, Repository } from "typeorm";
+import { AddProductDto, GetProductsDto, UpdateProductDto } from "./dto/product.dto";
 import { UserEntity } from "../../entities/User.entity";
 import { Role } from "../../common/enums/role.enum";
 import { MediaEntity } from "../../entities/Media.entity";
@@ -14,7 +14,6 @@ import { PlatformEntity } from "../../entities/Platform.entity";
 import { SubscriptionEntity } from "../../entities/Subscription.entity";
 import { TypeEntity } from "../../entities/Type.entity";
 import { generateSlug } from "../../common/utils/slug.utils";
-import { PaginationDto } from "../../common/dto/pagination.dto";
 import { validatePriceAndDiscount } from "../../common/utils/validateFreeProduct.utils";
 import { calculateDiscountedPrice } from "../../common/utils/calculateDiscountPrice.utils";
 import { findEntitiesByIds } from "../../common/utils/findEntitie.utils";
@@ -44,10 +43,23 @@ export class ProductService {
         this.typeRepo = this.dataSource.getRepository(TypeEntity)
     }
 
-    async getAllProducts(paginationDto: PaginationDto) {
-        const { limit = 10, offset = 0 } = paginationDto;
+    async getAllProducts(query: GetProductsDto) {
+        const { limit = 10, page = 1, search, eventId, genreId, typeId, featureId, platformId, subscriptionId } = query;
+        const offset = (page - 1) * limit;
+        if (offset < 0) throw new BadRequestException('Offset cannot be negative')
+
+        const where: FindOptionsWhere<ProductEntity> = {};
+
+        if (search) where.name = ILike(`%${search}%`);
+        if (eventId?.length) where.events = { id: In(eventId) };
+        if (genreId?.length) where.genres = { id: In(genreId) };
+        if (typeId?.length) where.types = { id: In(typeId) };
+        if (featureId?.length) where.features = { id: In(featureId) };
+        if (platformId?.length) where.platforms = { id: In(platformId) };
+        if (subscriptionId?.length) where.subscriptions = { id: In(subscriptionId) };
 
         let [products, total] = await this.productRepo.findAndCount({
+            where,
             relations: ['media', 'events', 'genres', 'types', 'features', 'platforms', 'subscriptions'],
             select: {
                 media: {
@@ -89,8 +101,8 @@ export class ProductService {
             data: products,
             count: total,
             limit,
-            offset,
-            nextPage: total > offset + limit ? offset + limit : null
+            page,
+            totalPages: Math.ceil(total / limit),
         }
     }
 

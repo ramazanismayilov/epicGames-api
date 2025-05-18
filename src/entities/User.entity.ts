@@ -3,6 +3,7 @@ import { RoleEntity } from "./Role.entity";
 import { CartItemEntity } from "./CartItem.entity";
 import { WishlistItemEntity } from "./WishlistItem.entity";
 import { CheckoutEntity } from "./Checkout.entity";
+import { Provider } from "src/common/enums/provider.enum";
 
 @Entity('user')
 export class UserEntity {
@@ -50,9 +51,15 @@ export class UserEntity {
 
     @Column({ type: 'varchar', nullable: true })
     refreshToken: string | null;
-    
+
     @Column({ type: 'timestamp', nullable: true })
     refreshTokenDate: Date | null;
+
+    @Column({ type: 'enum', enum: Provider, default: Provider.LOCAL })
+    provider: Provider;
+
+    @Column({ nullable: true })
+    providerId: string;
 
     @ManyToOne(() => RoleEntity, (role) => role.users, { onDelete: 'SET NULL' })
     role: RoleEntity;

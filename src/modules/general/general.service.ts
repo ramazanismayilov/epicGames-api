@@ -2,7 +2,6 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectDataSource } from "@nestjs/typeorm";
 import { RoleEntity } from "../../entities/Role.entity";
 import { DataSource, In, Repository } from "typeorm";
-import { RoleCreateDto } from "./dto/addRole.dto";
 import { MenuEntity } from "../../entities/Menu.entity";
 import { MenuCreateDto } from "./dto/addMenu.dto";
 import { ClsService } from "nestjs-cls";
@@ -25,20 +24,6 @@ export class GeneralService {
         let roles = await this.roleRepo.find();
         if (!roles.length) throw new NotFoundException('Role not found')
         return roles
-    }
-
-    async addRole(params: RoleCreateDto) {
-        let role = this.roleRepo.create(params)
-        await this.roleRepo.save(role)
-        return { message: 'Role created successfully', role }
-    }
-
-    async deleteRole(roleId: number) {
-        let role = await this.roleRepo.findOne({ where: { id: roleId } })
-        if (!role) throw new NotFoundException('Role not found')
-
-        await this.roleRepo.delete(roleId)
-        return { message: 'Role deleted successfully' }
     }
 
     async getMenus() {
@@ -75,13 +60,5 @@ export class GeneralService {
         })
         await this.menuRepo.save(menu)
         return { message: 'Menu created successfully', menu }
-    }
-
-    async deleteMenu(menuId: number) {
-        let menu = await this.menuRepo.findOne({ where: { id: menuId } })
-        if (!menu) throw new NotFoundException('Menu not found')
-
-        await this.menuRepo.delete(menuId)
-        return { message: 'Menu deleted successfully' }
     }
 }

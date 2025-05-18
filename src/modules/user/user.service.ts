@@ -29,12 +29,7 @@ export class UserService {
 
     async getUsers() {
         const currentUser = this.cls.get<UserEntity>('user');
-        console.log("Currentuser", currentUser);
-        
-        if (!currentUser) throw new ForbiddenException('User not found in context');  
-        if (!currentUser.role || !currentUser.role.name) throw new ForbiddenException('User role not defined');
         if (currentUser.role.name !== Role.ADMIN) throw new ForbiddenException('You do not have permission for this operation');
-        
 
         let users = await this.userRepo.find({
             relations: ['role'],

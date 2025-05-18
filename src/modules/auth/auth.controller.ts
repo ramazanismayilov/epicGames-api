@@ -9,6 +9,7 @@ import { ResetPasswordDto } from "./dto/reset-password.dto";
 import { CreateForgetPasswordDto } from "./dto/create-forget-password.dto";
 import { ConfirmForgetPaswordDto } from "./dto/confirm-forget-password.dto";
 import { ResentOtpDto } from "./dto/resent-otp.dto";
+import { FirebaseDto } from "./dto/firebase.dto";
 
 @Controller('auth')
 export class AuthController {
@@ -22,6 +23,11 @@ export class AuthController {
     @Post('register')
     register(@Body() body: RegisterDto) {
         return this.authService.register(body)
+    }
+
+    @Post('firebase')
+    async firebase(@Body() body: FirebaseDto) {
+        return this.authService.firebase(body);
     }
 
     @Post('verifyOtp')

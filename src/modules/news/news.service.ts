@@ -4,8 +4,8 @@ import { ClsService } from "nestjs-cls";
 import { Role } from "../../common/enums/role.enum";
 import { NewsEntity } from "../../entities/News.entity";
 import { UserEntity } from "../../entities/User.entity";
-import { DataSource, Repository } from "typeorm";
-import { AddNewsDto, UpdateNewsDto } from "./dto/news.dto";
+import { DataSource, FindOptionsWhere, ILike, Repository } from "typeorm";
+import { AddNewsDto, GetNewsDto, UpdateNewsDto } from "./dto/news.dto";
 import { MediaEntity } from "../../entities/Media.entity";
 import { PaginationDto } from "../../common/dto/pagination.dto";
 
@@ -23,9 +23,16 @@ export class NewsService {
 
     }
 
-    async getAllNews(params: PaginationDto) {
-        const { limit = 10, offset = 0 } = params;
+    async getAllNews(query: GetNewsDto) {
+        const { limit = 10, page = 1, search } = query;
+        const offset = (page - 1) * limit;
+
+        const where: FindOptionsWhere<NewsEntity> = {}
+
+        if (search) where.title = ILike(`%${search}%`)
+            
         const [news, total] = await this.newsRepo.findAndCount({
+            where,
             relations: ['media'],
             select: {
                 media: {
@@ -44,8 +51,8 @@ export class NewsService {
             data: news,
             count: total,
             limit,
-            offset,
-            nextPage: total > offset + limit ? offset + limit : null
+            page,
+            totalPages: Math.ceil(total / limit),
         };
     }
 

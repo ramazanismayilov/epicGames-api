@@ -2,7 +2,7 @@ import { BadRequestException, ConflictException, ForbiddenException, Injectable,
 import { JwtService } from "@nestjs/jwt";
 import { InjectDataSource } from "@nestjs/typeorm";
 import { UserEntity } from "../../entities/User.entity";
-import { DataSource, MoreThan, Repository } from "typeorm";
+import { DataSource, FindOptionsWhere, MoreThan, Repository } from "typeorm";
 import { RegisterDto } from "./dto/register.dto";
 import * as bcrypt from 'bcrypt';
 import { v4 } from 'uuid'
@@ -21,6 +21,9 @@ import { validatePasswords } from "../../common/utils/password.utils";
 import { ResentOtpDto } from "./dto/resent-otp.dto";
 import { Role } from "../../common/enums/role.enum";
 import { RoleEntity } from "../../entities/Role.entity";
+import { FirebaseDto } from "./dto/firebase.dto";
+import { FirebaseService } from "src/libs/firebase/firebase.service";
+import { Provider } from "src/common/enums/provider.enum";
 
 @Injectable()
 export class AuthService {
@@ -30,8 +33,9 @@ export class AuthService {
 
     constructor(
         private jwt: JwtService,
-        private mailer: MailerService,
         private cls: ClsService,
+        private mailer: MailerService,
+        private firebaseService: FirebaseService,
         @InjectDataSource() private dataSource: DataSource
     ) {
         this.userRepo = this.dataSource.getRepository(UserEntity)
@@ -103,6 +107,49 @@ export class AuthService {
             });
         }
         return { message: 'OTP sent to your email.' };
+    }
+
+    async firebase(params: FirebaseDto) {
+        let admin = this.firebaseService.firebaseApp;
+
+        let firebaseResult = await admin.auth().verifyIdToken(params.token);
+        if (!firebaseResult?.uid) throw new InternalServerErrorException('Something went wrong');
+
+        let uid = firebaseResult.uid;
+        let email = firebaseResult.email;
+
+        let where: FindOptionsWhere<UserEntity>[] = [{ providerId: uid, provider: Provider.FIREBASE }];
+
+        if (email) where.push({ email });
+
+        let user = await this.userRepo.findOne({ where });
+
+        if (!user) {
+            user = this.userRepo.create({
+                username: firebaseResult.name,
+                firstname: firebaseResult.name,
+                lastname: firebaseResult.name,
+                email,
+                pendingEmail: null,
+                password: v4(),
+                dateOfBirth: '2005-10-22',
+                country: 'Azerbaijan',
+                balance: 0,
+                accountId: v4(),
+                isVerified: true,
+                otpCode: null,
+                otpExpiredAt: null,
+                refreshToken: null,
+                refreshTokenDate: null,
+                provider: Provider.FIREBASE,
+                providerId: uid
+            });
+            // await this.userRepo.save(user);
+        }
+
+        // let token = this.jwt.sign({ userId: user.id })
+
+        return { message: "Signup is successfully" };
     }
 
     async verifyOtp(params: VerifyOtpDto) {
