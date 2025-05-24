@@ -8,7 +8,7 @@ import { AppModule } from '../app.module';
 import { Role } from '../common/enums/role.enum';
 import { Provider } from '../common/enums/provider.enum';
 
-async function bootstrap() {
+export async function seedAdmin() {
     const app = await NestFactory.create(AppModule);
     const dataSource = app.get(DataSource);
 
@@ -43,4 +43,3 @@ async function bootstrap() {
     }
     await app.close();
 }
-bootstrap();

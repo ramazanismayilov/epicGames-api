@@ -4,7 +4,7 @@ import { DataSource } from 'typeorm';
 import { AppModule } from '../app.module';
 import { Role } from '../common/enums/role.enum';
 
-async function bootstrap() {
+export async function seedRoles() {
     const app = await NestFactory.create(AppModule);
     const dataSource = app.get(DataSource);
     const roleRepo = dataSource.getRepository(RoleEntity); 
@@ -21,4 +21,3 @@ async function bootstrap() {
 
     await app.close();
 }
-bootstrap();
