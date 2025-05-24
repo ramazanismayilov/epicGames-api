@@ -1,4 +1,4 @@
-import { PartialType } from "@nestjs/swagger";
+import { ApiPropertyOptional, PartialType } from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
 import { IsArray, IsBoolean, IsEnum, IsNumber, IsOptional, IsPositive, IsString, IsUUID, Min } from "class-validator";
 import { AgeRestriction } from "../../../common/enums/ageRestriction.enum";
@@ -34,6 +34,10 @@ export class ProductDto {
     @Type()
     @IsString()
     developer: string;
+
+    @Type()
+    @IsBoolean()
+    isSilder: false
 
     @Type()
     @IsString()
@@ -92,6 +96,37 @@ export class GetProductsDto {
     @IsOptional()
     @IsString()
     search?: string;
+
+    @IsOptional()
+    @IsBoolean()
+    @Transform(({ value }) => value === 'true')
+    isDiscount?: boolean;
+
+    @IsOptional()
+    @IsBoolean()
+    @Transform(({ value }) => value === 'true')
+    isFree?: boolean;
+
+    @IsOptional()
+    @IsBoolean()
+    @Transform(({ value }) => value === 'true')
+    isTopSeller?: boolean;
+
+    @ApiPropertyOptional({
+        enum: ['createdAt', 'price', 'name'],
+        type: String,
+    })
+    @IsOptional()
+    @IsString()
+    sortBy?: 'createdAt' | 'price' | 'name';
+
+    @ApiPropertyOptional({
+        enum: ['ASC', 'DESC'],
+        type: String,
+    })
+    @IsOptional()
+    @IsString()
+    order?: 'ASC' | 'DESC';
 
     @Type()
     @IsOptional()

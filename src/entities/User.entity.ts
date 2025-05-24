@@ -3,7 +3,7 @@ import { RoleEntity } from "./Role.entity";
 import { CartItemEntity } from "./CartItem.entity";
 import { WishlistItemEntity } from "./WishlistItem.entity";
 import { CheckoutEntity } from "./Checkout.entity";
-import { Provider } from "src/common/enums/provider.enum";
+import { Provider } from "../common/enums/provider.enum";
 
 @Entity('user')
 export class UserEntity {

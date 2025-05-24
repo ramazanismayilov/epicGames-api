@@ -44,13 +44,18 @@ export class ProductService {
     }
 
     async getAllProducts(query: GetProductsDto) {
-        const { limit = 10, page = 1, search, eventId, genreId, typeId, featureId, platformId, subscriptionId } = query;
+        const { limit = 10, page = 1, search, isDiscount, isFree, isTopSeller, sortBy = 'createdAt', order = 'DESC', eventId, genreId, typeId, featureId, platformId, subscriptionId } = query;
         const offset = (page - 1) * limit;
         if (offset < 0) throw new BadRequestException('Offset cannot be negative')
 
         const where: FindOptionsWhere<ProductEntity> = {};
 
         if (search) where.name = ILike(`%${search}%`);
+        if (isDiscount === true) where.isDiscount = true;
+        if (isFree === true){
+             where.isFree = true;
+        }else if (isFree === false) where.isFree = false;
+        if (isTopSeller === true) where.isTopSeller = true;
         if (eventId?.length) where.events = { id: In(eventId) };
         if (genreId?.length) where.genres = { id: In(genreId) };
         if (typeId?.length) where.types = { id: In(typeId) };
@@ -91,6 +96,9 @@ export class ProductService {
                     id: true,
                     name: true
                 }
+            },
+            order: {
+                [sortBy]: order
             },
             skip: offset,
             take: limit,
@@ -166,10 +174,13 @@ export class ProductService {
         let discountedPrice = calculateDiscountedPrice(params.price, params.discount)
         validatePriceAndDiscount(params.isFree, params.price, params.discount)
 
+        const isDiscount = params.discount && params.discount > 0 ? true : false;
+
         const product = this.productRepo.create({
             ...params,
             slug,
             discountedPrice,
+            isDiscount,
             media,
             events,
             genres,

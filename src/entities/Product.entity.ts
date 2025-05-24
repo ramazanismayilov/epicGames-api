@@ -38,11 +38,23 @@ export class ProductEntity {
     @Column({ type: 'float' })
     discountedPrice: number;
 
+    @Column({ default: false })
+    isDiscount: boolean
+
+    @Column({ default: 0 })
+    soldCount: number;
+
+    @Column({ default: false })
+    isTopSeller: boolean
+
     @Column()
     developer: string
 
     @Column()
     publisher: string
+
+    @Column({ default: false })
+    isSlider: boolean
 
     @Column({ type: 'enum', enum: AgeRestriction, default: AgeRestriction.Age3 })
     ageRestriction: AgeRestriction

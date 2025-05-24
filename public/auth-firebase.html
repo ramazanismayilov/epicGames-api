@@ -43,8 +43,6 @@
           console.log('ERROR', err);
           return false;
         });
-        console.log("FirebaseResult", firebaseResult);
-        
 
         if (!firebaseResult) alert('Something went wrong');
 
@@ -59,7 +57,7 @@
           }),
         });
         let response = await result.json();
-        console.log(response);
+        alert(response.message);
       });
   </script>
 </body>

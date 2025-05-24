@@ -4,11 +4,15 @@ const privateKey = require('../../../keys/firebase-private.json');
 
 @Injectable()
 export class FirebaseService {
-    public firebaseApp: admin.app.App;
+  public firebaseApp: admin.app.App;
 
-    constructor() {
-        this.firebaseApp = admin.initializeApp({
-            credential: admin.credential.cert(privateKey),
-        });
+  constructor() {
+    if (!admin.apps.length) {
+      this.firebaseApp = admin.initializeApp({
+        credential: admin.credential.cert(privateKey),
+      });
+    } else {
+      this.firebaseApp = admin.app(); 
     }
+  }
 }

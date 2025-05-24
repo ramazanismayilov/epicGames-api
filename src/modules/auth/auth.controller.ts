@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { RegisterDto } from "./dto/register.dto";
 import { VerifyOtpDto } from "./dto/verify.dto";
@@ -59,5 +59,10 @@ export class AuthController {
     @Post('forget-password/confirm')
     confirmPassword(@Body() body: ConfirmForgetPaswordDto) {
         return this.authService.confirmForgetPassword(body);
+    }
+
+    @Get('verify-token/:token')
+    async verify(@Param('token') token: string) {
+        return this.authService.verifyToken(token);
     }
 }

@@ -22,8 +22,8 @@ import { ResentOtpDto } from "./dto/resent-otp.dto";
 import { Role } from "../../common/enums/role.enum";
 import { RoleEntity } from "../../entities/Role.entity";
 import { FirebaseDto } from "./dto/firebase.dto";
-import { FirebaseService } from "src/libs/firebase/firebase.service";
-import { Provider } from "src/common/enums/provider.enum";
+import { FirebaseService } from "../../libs/firebase/firebase.service";
+import { Provider } from "../../common/enums/provider.enum";
 
 @Injectable()
 export class AuthService {
@@ -124,6 +124,9 @@ export class AuthService {
 
         let user = await this.userRepo.findOne({ where });
 
+        const role = await this.roleRepo.findOneBy({ name: Role.USER });
+        if (!role) throw new NotFoundException('Role not found');
+
         if (!user) {
             user = this.userRepo.create({
                 username: firebaseResult.name,
@@ -142,14 +145,15 @@ export class AuthService {
                 refreshToken: null,
                 refreshTokenDate: null,
                 provider: Provider.FIREBASE,
-                providerId: uid
+                providerId: uid,
+                role
             });
-            // await this.userRepo.save(user);
+            await this.userRepo.save(user);
         }
 
-        // let token = this.jwt.sign({ userId: user.id })
+        let token = this.jwt.sign({ userId: user.id })
 
-        return { message: "Signup is successfully" };
+        return { message: "Signup is successfully", token };
     }
 
     async verifyOtp(params: VerifyOtpDto) {
@@ -275,5 +279,14 @@ export class AuthService {
         await this.userActivationRepo.delete({ userId: user.id });
 
         return { message: 'Password is updated successfully' };
+    }
+
+    verifyToken(token: string) {
+        try {
+            const decoded = this.jwt.verify(token);
+            return { message: 'Token is valid', decoded };
+        } catch (error) {
+            throw new UnauthorizedException('Token is invalid or expired');
+        }
     }
 }

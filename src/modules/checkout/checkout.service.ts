@@ -170,6 +170,9 @@ export class CheckoutService {
             if (!product) throw new NotFoundException(`Product with ID ${checkoutItem.productId} not found`);
             if (quantity === 0) continue;
 
+            product.soldCount += quantity;
+            product.isTopSeller = product.soldCount >= 50;
+
             const item = new CheckoutItemEntity();
             item.product = product;
             item.checkout = checkout;

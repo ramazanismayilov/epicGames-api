@@ -8,7 +8,7 @@ export class RoleEntity {
     @PrimaryGeneratedColumn()
     id: number
 
-    @Column({ type: 'enum', enum: Role, default: Role.USER })
+    @Column({ type: 'enum', enum: Role, default: Role.USER, unique: true })
     name: Role
 
     @ManyToMany(() => MenuEntity, (menu) => menu.roles)

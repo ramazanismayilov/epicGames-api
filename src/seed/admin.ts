@@ -6,6 +6,7 @@ import { RoleEntity } from '../entities/Role.entity';
 import { DataSource } from 'typeorm';
 import { AppModule } from '../app.module';
 import { Role } from '../common/enums/role.enum';
+import { Provider } from '../common/enums/provider.enum';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
@@ -35,7 +36,8 @@ async function bootstrap() {
             country: 'Azerbaijan',
             accountId: v4(),
             isVerified: true,
-            role: adminRole
+            role: adminRole,
+            provider: Provider.LOCAL
         });
         await userRepo.save(adminUser);
     }
