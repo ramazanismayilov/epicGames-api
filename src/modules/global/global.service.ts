@@ -9,10 +9,10 @@ export class GlobalService {
     ) { }
 
     async allCountries() {
-        const response$ = this.httpService.get('https://restcountries.com/v3.1/all');
+        const response$ = this.httpService.get('https://countriesnow.space/api/v0.1/countries');
         const response = await lastValueFrom(response$);
 
-        const countries = response.data.map((item: any, i: number) => ({ id: i + 1, name: item.name.common, flag: item.flags.png }));
+        const countries = response.data.data.map((item: any, i: number) => ({ id: i + 1, name: item.country }));
         return countries;
     }
 }
