@@ -23,7 +23,7 @@ export class NewsController {
         return this.newsService.addNews(body)
     }
 
-    @Post('id')
+    @Post(':id')
     @Auth()
     updateNews(@Param('id') id: number, @Body() body: UpdateNewsDto) {
         return this.newsService.updateNews(id, body)

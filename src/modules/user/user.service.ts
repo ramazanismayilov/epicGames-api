@@ -41,10 +41,10 @@ export class UserService {
             }
         });
         if (!users || users.length === 0) throw new NotFoundException('Users not found');
-        
+
         return users;
     }
-    
+
     async getUser(userId: number) {
         let user = await this.userRepo.findOne({
             where: { id: userId },
@@ -72,7 +72,8 @@ export class UserService {
 
     async updateEmail(params: EmailUpdateDto) {
         let user = this.cls.get<UserEntity>('user')
-        if (params.email === user.email) throw new ConflictException('Email is already in use.')
+        let email = await this.userRepo.findOne({ where: { email: params.email } })
+        if (email) throw new ConflictException('This email address is already in use')
         if (params.email || params.email !== user.email) {
             user.pendingEmail = params.email
             user.otpCode = generateOtpNumber();

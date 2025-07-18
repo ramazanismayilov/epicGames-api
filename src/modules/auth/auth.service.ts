@@ -283,10 +283,13 @@ export class AuthService {
 
     verifyToken(token: string) {
         try {
-            const decoded = this.jwt.verify(token);
-            return { message: 'Token is valid', decoded };
-        } catch (error) {
-            throw new UnauthorizedException('Token is invalid or expired');
+            const payload = this.jwt.verify(token);
+            return { valid: true, userId: payload.userId };
+        } catch (e) {
+            if (e.name === 'TokenExpiredError') {
+                return { valid: false };
+            }
+            return { valid: false };
         }
     }
 }

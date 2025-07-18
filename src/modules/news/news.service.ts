@@ -30,7 +30,7 @@ export class NewsService {
         const where: FindOptionsWhere<NewsEntity> = {}
 
         if (search) where.title = ILike(`%${search}%`)
-            
+
         const [news, total] = await this.newsRepo.findAndCount({
             where,
             relations: ['media'],
@@ -94,7 +94,7 @@ export class NewsService {
         if (user.role.name !== Role.ADMIN) throw new ForbiddenException('You do not have permission to add news')
 
         const news = await this.newsRepo.findOne({ where: { id: newsId }, relations: ['media'] });
-        if (!news) throw new NotFoundException({ message: 'News not found' });
+        if (!news) throw new NotFoundException('News not found');
 
         if (params.mediaId) {
             let media = await this.mediaRepo.findOne({ where: { id: params.mediaId } })

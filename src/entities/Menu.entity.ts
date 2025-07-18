@@ -18,9 +18,9 @@ export class MenuEntity {
     @ManyToMany(() => RoleEntity, (role) => role.menus)
     roles: RoleEntity[];
 
-    @CreateDateColumn()
+    @CreateDateColumn({ select: false })
     createdAt: Date;
 
-    @UpdateDateColumn()
+    @UpdateDateColumn({ select: false })
     updatedAt: Date;
 }

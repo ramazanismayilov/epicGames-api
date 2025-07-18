@@ -18,9 +18,9 @@ export class RoleEntity {
     @OneToMany(() => UserEntity, user => user.role)
     users: UserEntity[]
 
-    @CreateDateColumn()
+    @CreateDateColumn({ select: false })
     createdAt: Date;
 
-    @UpdateDateColumn()
+    @UpdateDateColumn({ select: false })
     updatedAt: Date;
 }

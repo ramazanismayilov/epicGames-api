@@ -19,7 +19,7 @@ export class GeneralController {
     }
 
     @Post('menus')
-    async addMenu(@Body() body: MenuCreateDto) {
+    addMenu(@Body() body: MenuCreateDto) {
         return this.generalService.addMenu(body);
     }
 }
