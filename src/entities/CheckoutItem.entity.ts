@@ -19,9 +19,6 @@ export class CheckoutItemEntity {
     @ManyToOne(() => ProductEntity, { eager: true })
     product: ProductEntity;
 
-    @Column()
-    quantity: number;
-
     @Column('float')
     price: number;
 }

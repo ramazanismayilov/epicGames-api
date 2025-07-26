@@ -45,7 +45,6 @@ export class CheckoutService {
                     balance: true,
                 },
                 items: {
-                    quantity: true,
                     price: true,
                     product: {
                         id: true,
@@ -83,7 +82,6 @@ export class CheckoutService {
                     balance: true,
                 },
                 items: {
-                    quantity: true,
                     price: true,
                     product: {
                         id: true,
@@ -116,7 +114,6 @@ export class CheckoutService {
                     balance: true,
                 },
                 items: {
-                    quantity: true,
                     price: true,
                     product: {
                         id: true,
@@ -165,19 +162,15 @@ export class CheckoutService {
 
         for (const checkoutItem of params.items) {
             const product = products.find(p => p.id === checkoutItem.productId);
-            const quantity = checkoutItem.quantity ?? 1;
 
             if (!product) throw new NotFoundException(`Product with ID ${checkoutItem.productId} not found`);
-            if (quantity === 0) continue;
 
-            product.soldCount += quantity;
             product.isTopSeller = product.soldCount >= 50;
 
             const item = new CheckoutItemEntity();
             item.product = product;
             item.checkout = checkout;
-            item.quantity = quantity;
-            item.price = product.discountedPrice * quantity;
+            item.price = product.discountedPrice;
             totalAmount += item.price;
             items.push(item);
         }
@@ -234,21 +227,18 @@ export class CheckoutService {
         const product = await this.productRepo.findOne({ where: { id: params.productId } });
         if (!product) throw new NotFoundException('Product not found');
 
-        const quantityToAdd = params.quantity ?? 1;
 
         const items: CheckoutItemEntity[] = [];
 
         const existingItem = checkout.items.find(i => i.product.id === product.id);
         if (existingItem) {
-            existingItem.quantity += quantityToAdd;
-            existingItem.price = product.discountedPrice * existingItem.quantity;
+            existingItem.price = product.discountedPrice;
             await this.checkoutItemRepo.save(existingItem);
         } else {
             const productCheckout = new CheckoutItemEntity();
             productCheckout.product = product;
             productCheckout.checkout = checkout;
-            productCheckout.quantity = quantityToAdd;
-            productCheckout.price = product.discountedPrice * quantityToAdd;
+            productCheckout.price = product.discountedPrice;
             items.push(productCheckout)
             await this.checkoutItemRepo.save(productCheckout);
         }

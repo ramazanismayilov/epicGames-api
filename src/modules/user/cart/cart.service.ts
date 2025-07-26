@@ -1,11 +1,11 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectDataSource } from "@nestjs/typeorm";
 import { ClsService } from "nestjs-cls";
 import { CartItemEntity } from "../../../entities/CartItem.entity";
 import { ProductEntity } from "../../../entities/Product.entity";
 import { UserEntity } from "../../../entities/User.entity";
 import { DataSource, Repository } from "typeorm";
-import { CartDto, UpdateCartItemQuantityDto } from "./dto/cart.dto";
+import { CartDto } from "./dto/cart.dto";
 
 @Injectable()
 export class CartService {
@@ -26,7 +26,7 @@ export class CartService {
 
         const userCart = await this.cartRepo.find({
             where: { user: { id: user.id } },
-            relations: ['product', 'user'],
+            relations: ['product', 'product.media', 'user'],
             select: {
                 product: {
                     id: true,
@@ -35,7 +35,12 @@ export class CartService {
                     isFree: true,
                     price: true,
                     discount: true,
-                    discountedPrice: true
+                    discountedPrice: true,
+                    media: {
+                        id: true,
+                        url: true,
+                        type: true
+                    }
                 },
                 user: {
                     id: true,
@@ -70,43 +75,14 @@ export class CartService {
             cartItem = this.cartRepo.create({
                 user,
                 product,
-                quantity: params.quantity ?? 1,
-                totalPrice: product.discountedPrice * (params.quantity ?? 1)
+                totalPrice: product.discountedPrice
             })
         } else {
-            if (params.quantity) {
-                cartItem.quantity += params.quantity;
-            } else {
-                cartItem.quantity += 1;
-            }
-            cartItem.totalPrice = product.discountedPrice * cartItem.quantity;
+            throw new ConflictException('This product has already in cart')
         }
 
         await this.cartRepo.save(cartItem!);
         return { message: 'Product successfully added to your cart', cartItem };
-    }
-
-    async updateProductQuantityInCart(cartId: number, params: UpdateCartItemQuantityDto) {
-        const user = this.cls.get<UserEntity>('user');
-        if (!user) throw new NotFoundException('User not found');
-
-        const cartItem = await this.cartRepo.findOne({
-            where: { id: cartId, user: { id: user.id } },
-            relations: ['product'],
-        });
-        if (!cartItem) throw new NotFoundException('Product not found in your cart');
-
-        cartItem.quantity += params.change;
-
-        if (cartItem.quantity <= 0) {
-            await this.cartRepo.delete(cartItem.id);
-            return { message: 'Product removed from cart because its quantity is zero or less' };
-        }
-
-        cartItem.totalPrice = cartItem.product.discountedPrice * cartItem.quantity;
-        await this.cartRepo.save(cartItem);
-
-        return { message: 'Product quantity updated successfully in your cart', cartItem };
     }
 
     async removeProductFromCart(cartId: number) {

@@ -13,10 +13,7 @@ export class CartItemEntity {
     @ManyToOne(() => ProductEntity, { onDelete: 'CASCADE' })
     product: ProductEntity;
 
-    @Column({ type: 'int', default: 1 })
-    quantity: number;
-
-    @Column()
+    @Column({type: 'float'})
     totalPrice: number;
 
     @CreateDateColumn()

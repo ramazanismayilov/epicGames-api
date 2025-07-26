@@ -11,9 +11,4 @@ export class CheckoutItemDto {
     @Type()
     @IsNumber()
     productId: number;
-
-    @Type()
-    @IsNumber()
-    @IsOptional()
-    quantity?: number;
 }
