@@ -26,7 +26,7 @@ export class WishlistService {
 
         const userWishlist = await this.wishlistRepo.find({
             where: { user: { id: user.id } },
-            relations: ['product', 'user'],
+            relations: ['product', 'product.media'],
             select: {
                 product: {
                     id: true,
@@ -35,20 +35,18 @@ export class WishlistService {
                     isFree: true,
                     price: true,
                     discount: true,
-                    discountedPrice: true
-                },
-                user: {
-                    id: true,
-                    firstname: true,
-                    lastname: true,
-                    username: true,
-                    email: true
+                    discountedPrice: true,
+                    media: {
+                        id: true,
+                        url: true,
+                        type: true
+                    }
                 }
             }
         });
         if (userWishlist.length === 0) throw new NotFoundException('Your wishlist is empty');
 
-        return userWishlist;
+        return { data: userWishlist };
     }
 
     async toggleUserWishlistItem(params: WishlistDto) {
@@ -71,7 +69,7 @@ export class WishlistService {
                 product,
             })
             await this.wishlistRepo.save(wishlistItem);
-            return { message: 'Product successfully added to your wishlist', wishlistItem };
+            return { message: 'Product successfully added to your wishlist' };
         } else {
             await this.wishlistRepo.delete(wishlistItem.id);
             return { message: 'Product successfully removed from your wishlist' };
@@ -105,5 +103,4 @@ export class WishlistService {
         await this.wishlistRepo.remove(wishlistItems);
         return { message: 'All items have been successfully removed from your wishlist' };
     }
-
 }

@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Post } from "@nestjs/common";
 import { CheckoutService } from "./checkout.service";
-import { CheckoutDto, CheckoutItemDto } from "./dto/checkout.dto";
+import { CheckoutDto, CheckoutItemDto, CompleteCheckoutDto } from "./dto/checkout.dto";
 import { Auth } from "../../common/decorators/auth.decorator";
 
 @Auth()
@@ -28,9 +28,9 @@ export class CheckoutController {
         return this.checkoutService.createCheckout(body)
     }
 
-    @Post(':id/complete')
-    completeCheckout(@Param('id') id: number) {
-        return this.checkoutService.completeCheckout(id)
+    @Post('complete')
+    completeCheckout(@Body() body: CompleteCheckoutDto) {
+        return this.checkoutService.completeCheckout(body)
     }
 
     @Delete(':id')

@@ -13,12 +13,12 @@ export class CartItemEntity {
     @ManyToOne(() => ProductEntity, { onDelete: 'CASCADE' })
     product: ProductEntity;
 
-    @Column({type: 'float'})
+    @Column({ type: 'float' })
     totalPrice: number;
 
-    @CreateDateColumn()
+    @CreateDateColumn({ select: false })
     createdAt: Date;
 
-    @UpdateDateColumn()
+    @UpdateDateColumn({ select: false })
     updatedAt: Date;
 }

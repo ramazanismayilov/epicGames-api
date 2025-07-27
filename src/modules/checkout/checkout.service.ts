@@ -4,14 +4,16 @@ import { ClsService } from "nestjs-cls";
 import { CheckoutEntity } from "../../entities/Checkout.entity";
 import { UserEntity } from "../../entities/User.entity";
 import { DataSource, In, Repository } from "typeorm";
-import { CheckoutDto, CheckoutItemDto } from "./dto/checkout.dto";
+import { CheckoutDto, CheckoutItemDto, CompleteCheckoutDto } from "./dto/checkout.dto";
 import { ProductEntity } from "../../entities/Product.entity";
 import { CheckoutStatus } from "../../common/enums/checkout.enum";
 import { CheckoutItemEntity } from "../../entities/CheckoutItem.entity";
 import { classToPlain } from "class-transformer";
+import { CartItemEntity } from "src/entities/CartItem.entity";
 
 @Injectable()
 export class CheckoutService {
+    private cartItemRepo: Repository<CartItemEntity>
     private checkoutRepo: Repository<CheckoutEntity>
     private checkoutItemRepo: Repository<CheckoutItemEntity>
     private productRepo: Repository<ProductEntity>
@@ -21,6 +23,7 @@ export class CheckoutService {
         private cls: ClsService,
         @InjectDataSource() private dataSource: DataSource
     ) {
+        this.cartItemRepo = this.dataSource.getRepository(CartItemEntity)
         this.checkoutRepo = this.dataSource.getRepository(CheckoutEntity)
         this.checkoutItemRepo = this.dataSource.getRepository(CheckoutItemEntity)
         this.productRepo = this.dataSource.getRepository(ProductEntity)
@@ -137,11 +140,11 @@ export class CheckoutService {
         if (!user) throw new NotFoundException('User not found');
 
         const products = await this.productRepo.find({
-            where: { id: In(params.items.map(item => item.productId)) },
+            where: { id: In(params.productIds) },
             select: ['id', 'name', 'media', 'isFree', 'price', 'discount', 'discountedPrice'],
         });
 
-        if (products.length !== params.items.length) throw new NotFoundException('Some products not found');
+        if (products.length !== params.productIds.length) throw new NotFoundException('Some products not found');
 
         const checkout = this.checkoutRepo.create({
             user: {
@@ -160,10 +163,10 @@ export class CheckoutService {
         let totalAmount = 0;
         const items: CheckoutItemEntity[] = [];
 
-        for (const checkoutItem of params.items) {
-            const product = products.find(p => p.id === checkoutItem.productId);
+        for (const productId of params.productIds) {
+            const product = products.find(p => p.id === productId);
 
-            if (!product) throw new NotFoundException(`Product with ID ${checkoutItem.productId} not found`);
+            if (!product) throw new NotFoundException(`Product with ID ${productId} not found`);
 
             product.isTopSeller = product.soldCount >= 50;
 
@@ -181,30 +184,65 @@ export class CheckoutService {
         checkout.items = items;
 
         await this.checkoutRepo.save(checkout);
-        return { message: 'Checkout created successfully', checkout: classToPlain(checkout) };
+        return { message: 'Success' };
     }
 
-    async completeCheckout(checkoutId: number) {
-        const checkout = await this.checkoutRepo.findOne({ where: { id: checkoutId }, relations: ['user', 'items', 'items.product'] });
+    async completeCheckout(params: CompleteCheckoutDto) {
+        const checkouts: { checkout: CheckoutEntity; user: UserEntity }[] = [];
+        const failedReasons: string[] = [];
 
-        if (!checkout) throw new NotFoundException('Checkout not found');
-        if (checkout.status === CheckoutStatus.COMPLETED) throw new BadRequestException('Checkout has already been completed');
+        for (const checkoutId of params.checkoutIds) {
+            const checkout = await this.checkoutRepo.findOne({
+                where: { id: checkoutId },
+                relations: ['user', 'items', 'items.product']
+            });
 
-        const user = await this.userRepo.findOneBy({ id: checkout.user.id });
-        if (!user) throw new NotFoundException('User not found');
+            if (!checkout) {
+                failedReasons.push('Checkout not found');
+                continue;
+            }
 
-        if (checkout.totalAmount > user.balance) {
-            checkout.status = CheckoutStatus.FAILED;
-            await this.checkoutRepo.save(checkout);
-            throw new BadRequestException('Your balance is not enough');
+            if (checkout.status === CheckoutStatus.COMPLETED) {
+                failedReasons.push('Checkout already completed');
+                continue;
+            }
+
+            const user = await this.userRepo.findOneBy({ id: checkout.user.id });
+            if (!user) {
+                failedReasons.push('User not found');
+                continue;
+            }
+
+            if (checkout.totalAmount > user.balance) {
+                checkout.status = CheckoutStatus.FAILED;
+                await this.checkoutRepo.save(checkout);
+                failedReasons.push('Balance not enough');
+                continue;
+            }
+
+            checkouts.push({ checkout, user });
         }
 
-        user.balance -= checkout.totalAmount;
-        await this.userRepo.save(user);
+        if (failedReasons.length > 0) {
+            throw new BadRequestException(failedReasons[0]);
+        }
 
-        checkout.status = CheckoutStatus.COMPLETED;
-        await this.checkoutRepo.save(checkout);
-        return { message: 'Checkout completed successfully' };
+        for (const { checkout, user } of checkouts) {
+            user.balance -= checkout.totalAmount;
+            await this.userRepo.save(user);
+
+            checkout.status = CheckoutStatus.COMPLETED;
+            await this.checkoutRepo.save(checkout);
+
+            const productIds = checkout.items.map(item => item.product.id);
+
+            await this.cartItemRepo.delete({
+                user: { id: user.id },
+                product: In(productIds),
+            });
+        }
+
+        return { message: 'All checkouts completed successfully' };
     }
 
     async deleteCheckout(checkoutId: number) {

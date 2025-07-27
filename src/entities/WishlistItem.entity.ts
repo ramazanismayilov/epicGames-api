@@ -13,9 +13,9 @@ export class WishlistItemEntity {
     @ManyToOne(() => ProductEntity, { onDelete: 'CASCADE' })
     product: ProductEntity;
 
-    @CreateDateColumn()
+    @CreateDateColumn({ select: false })
     createdAt: Date;
 
-    @UpdateDateColumn()
+    @UpdateDateColumn({ select: false })
     updatedAt: Date;
 }

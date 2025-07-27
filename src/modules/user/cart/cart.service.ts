@@ -26,7 +26,7 @@ export class CartService {
 
         const userCart = await this.cartRepo.find({
             where: { user: { id: user.id } },
-            relations: ['product', 'product.media', 'user'],
+            relations: ['product', 'product.media'],
             select: {
                 product: {
                     id: true,
@@ -41,19 +41,12 @@ export class CartService {
                         url: true,
                         type: true
                     }
-                },
-                user: {
-                    id: true,
-                    firstname: true,
-                    lastname: true,
-                    username: true,
-                    email: true
                 }
             }
         });
         if (userCart.length === 0) throw new NotFoundException('Your cart is empty');
 
-        return userCart;
+        return { data: userCart };
     }
 
     async addProductToCart(params: CartDto) {
@@ -82,7 +75,7 @@ export class CartService {
         }
 
         await this.cartRepo.save(cartItem!);
-        return { message: 'Product successfully added to your cart', cartItem };
+        return { message: 'Success' };
     }
 
     async removeProductFromCart(cartId: number) {
