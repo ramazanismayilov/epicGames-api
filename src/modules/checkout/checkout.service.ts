@@ -8,7 +8,6 @@ import { CheckoutDto, CheckoutItemDto, CompleteCheckoutDto } from "./dto/checkou
 import { ProductEntity } from "../../entities/Product.entity";
 import { CheckoutStatus } from "../../common/enums/checkout.enum";
 import { CheckoutItemEntity } from "../../entities/CheckoutItem.entity";
-import { classToPlain } from "class-transformer";
 import { CartItemEntity } from "src/entities/CartItem.entity";
 
 @Injectable()
@@ -32,7 +31,7 @@ export class CheckoutService {
 
     async getAllCheckouts() {
         const checkouts = await this.checkoutRepo.find({
-            relations: ['user', 'items', 'items.product'],
+            relations: ['user', 'items', 'items.product', 'items.product.media'],
             select: {
                 id: true,
                 totalAmount: true,
@@ -48,15 +47,20 @@ export class CheckoutService {
                     balance: true,
                 },
                 items: {
+                    id: true,
                     price: true,
                     product: {
                         id: true,
                         name: true,
-                        media: true,
                         isFree: true,
                         price: true,
                         discount: true,
                         discountedPrice: true,
+                        media: {
+                            id: true,
+                            url: true,
+                            type: true
+                        }
                     }
                 }
             }
@@ -106,7 +110,7 @@ export class CheckoutService {
     async getCheckoutsByUser(userId: number) {
         const checkouts = await this.checkoutRepo.find({
             where: { user: { id: userId } },
-            relations: ['user', 'items', 'items.product'],
+            relations: ['user', 'items', 'items.product', 'items.product.media'],
             select: {
                 user: {
                     id: true,
@@ -117,15 +121,20 @@ export class CheckoutService {
                     balance: true,
                 },
                 items: {
+                    id: true,
                     price: true,
                     product: {
                         id: true,
                         name: true,
-                        media: true,
                         isFree: true,
                         price: true,
                         discount: true,
-                        discountedPrice: true
+                        discountedPrice: true,
+                        media: {
+                            id: true,
+                            url: true,
+                            type: true
+                        }
                     }
                 }
             }
