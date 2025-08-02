@@ -7,7 +7,15 @@ export class ProductDto {
     @Type()
     @IsArray()
     @IsUUID('4', { each: true })
-    mediaId: string[];
+    detailImageId: string[];
+
+    @Type()
+    @IsUUID('4')
+    coverImageId: string
+
+    @Type()
+    @IsUUID('4')
+    productLogoId: string
 
     @Type()
     @IsString()
@@ -19,7 +27,7 @@ export class ProductDto {
 
     @Type()
     @IsBoolean()
-    isFree: false
+    isFree: boolean
 
     @Type()
     @IsNumber()
@@ -37,7 +45,7 @@ export class ProductDto {
 
     @Type()
     @IsBoolean()
-    isSilder: false
+    isSilder: boolean
 
     @Type()
     @IsString()

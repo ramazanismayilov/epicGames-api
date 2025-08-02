@@ -36,11 +36,21 @@ export class WishlistService {
                     price: true,
                     discount: true,
                     discountedPrice: true,
-                    media: {
+                    detailImage: {
                         id: true,
                         url: true,
                         type: true
-                    }
+                    },
+                    coverImage: {
+                        id: true,
+                        url: true,
+                        type: true,
+                    },
+                    productLogo: {
+                        id: true,
+                        url: true,
+                        type: true,
+                    },
                 }
             }
         });

@@ -2,7 +2,7 @@ import { BadRequestException, ConflictException, ForbiddenException, Injectable,
 import { InjectDataSource } from "@nestjs/typeorm";
 import { ClsService } from "nestjs-cls";
 import { ProductEntity } from "../../entities/Product.entity";
-import { DataSource, FindOptionsWhere, ILike, In, Repository } from "typeorm";
+import { DataSource, DeepPartial, FindOptionsWhere, ILike, In, Repository } from "typeorm";
 import { AddProductDto, GetProductsDto, UpdateProductDto } from "./dto/product.dto";
 import { UserEntity } from "../../entities/User.entity";
 import { Role } from "../../common/enums/role.enum";
@@ -52,9 +52,9 @@ export class ProductService {
 
         if (search) where.name = ILike(`%${search}%`);
         if (isDiscount === true) where.isDiscount = true;
-        if (isFree === true){
-             where.isFree = true;
-        }else if (isFree === false) where.isFree = false;
+        if (isFree === true) {
+            where.isFree = true;
+        } else if (isFree === false) where.isFree = false;
         if (isTopSeller === true) where.isTopSeller = true;
         if (eventId?.length) where.events = { id: In(eventId) };
         if (genreId?.length) where.genres = { id: In(genreId) };
@@ -65,13 +65,8 @@ export class ProductService {
 
         let [products, total] = await this.productRepo.findAndCount({
             where,
-            relations: ['media', 'events', 'genres', 'types', 'features', 'platforms', 'subscriptions'],
+            relations: ['detailImage', 'coverImage', 'productLogo', 'events', 'genres', 'types', 'features', 'platforms', 'subscriptions'],
             select: {
-                media: {
-                    id: true,
-                    url: true,
-                    type: true,
-                },
                 events: {
                     id: true,
                     name: true
@@ -117,13 +112,8 @@ export class ProductService {
     async getProduct(productId: number) {
         let product = await this.productRepo.findOne({
             where: { id: productId },
-            relations: ['media', 'events', 'genres', 'types', 'features', 'platforms', 'subscriptions'],
+            relations: ['detailImage', 'coverImage', 'productLogo', 'events', 'genres', 'types', 'features', 'platforms', 'subscriptions'],
             select: {
-                media: {
-                    id: true,
-                    url: true,
-                    type: true,
-                },
                 events: {
                     id: true,
                     name: true
@@ -159,10 +149,10 @@ export class ProductService {
         const user = this.cls.get<UserEntity>('user');
         if (user.role.name !== Role.ADMIN) throw new ForbiddenException('You do not have permission to add product')
 
-        const existingProduct = await this.productRepo.findOne({ where: { media: { id: In(params.mediaId) } } })
+        const existingProduct = await this.productRepo.findOne({ where: { detailImage: { id: In(params.detailImageId) } } })
         if (existingProduct) throw new ConflictException("This media has already been used in another product entry")
 
-        const media = await findEntitiesByIds(this.mediaRepo, params.mediaId, 'media');
+        const detailImage = await findEntitiesByIds(this.mediaRepo, params.detailImageId, 'detail image');
         const events = await findEntitiesByIds(this.eventRepo, params.eventsId, 'events');
         const genres = await findEntitiesByIds(this.genreRepo, params.genresId, 'genres');
         const types = await findEntitiesByIds(this.typeRepo, params.typesId, 'types');
@@ -176,19 +166,33 @@ export class ProductService {
 
         const isDiscount = params.discount && params.discount > 0 ? true : false;
 
+        let coverImage: MediaEntity | null = null;
+        if (params.coverImageId) {
+            coverImage = await this.mediaRepo.findOneBy({ id: params.coverImageId });
+            if (!coverImage) throw new NotFoundException('Cover image not found');
+        }
+
+        let productLogo: MediaEntity | null = null;
+        if (params.productLogoId) {
+            productLogo = await this.mediaRepo.findOneBy({ id: params.productLogoId });
+            if (!productLogo) throw new NotFoundException('Product logo not found');
+        }
+
         const product = this.productRepo.create({
             ...params,
             slug,
             discountedPrice,
             isDiscount,
-            media,
+            detailImage,
+            coverImage,
+            productLogo,
             events,
             genres,
             types,
             features,
             platforms,
             subscriptions
-        });
+        } as DeepPartial<ProductEntity>);
 
         await this.productRepo.save(product);
         return { message: 'Product successfully created', product };
@@ -200,7 +204,7 @@ export class ProductService {
 
         let product = await this.productRepo.findOne({
             where: { id: productId },
-            relations: ['events', 'genres', 'types', 'features', 'platforms', 'subscriptions']
+            relations: ['detailImage', 'coverImage', 'productLogo', 'events', 'genres', 'types', 'features', 'platforms', 'subscriptions']
         })
         if (!product) throw new NotFoundException('Product not found')
 
@@ -209,12 +213,30 @@ export class ProductService {
             product.slug = slug;
         }
 
-        if (params.mediaId) {
-            const existingProduct = await this.productRepo.findOne({ where: { media: { id: In(params.mediaId) } } })
-            if (existingProduct) throw new ConflictException("This media has already been used in another product entry")
+        if (params.detailImageId) {
+            const existingProduct = await this.productRepo.findOne({ where: { detailImage: { id: In(params.detailImageId) } } })
+            if (existingProduct) throw new ConflictException("This detailImage has already been used in another product entry")
 
-            const media = await findEntitiesByIds(this.mediaRepo, params.mediaId, 'media');
-            product.media = media
+            const media = await findEntitiesByIds(this.mediaRepo, params.detailImageId, 'media');
+            product.detailImage = media
+        }
+
+        if (params.coverImageId) {
+            const existingProduct = await this.productRepo.findOne({ where: { coverImage: { id: params.coverImageId } } });
+            if (existingProduct) throw new ConflictException("This coverImage has already been used in another product entry");
+
+            const media = await this.mediaRepo.findOneBy({ id: params.coverImageId });
+            if (!media) throw new NotFoundException("Cover image not found");
+            product.coverImage = media;
+        }
+
+        if (params.productLogoId) {
+            const existingProduct = await this.productRepo.findOne({ where: { productLogo: { id: params.productLogoId } } });
+            if (existingProduct) throw new ConflictException("This productLogo has already been used in another product entry");
+
+            const media = await this.mediaRepo.findOneBy({ id: params.productLogoId });
+            if (!media) throw new NotFoundException("Product logo not found");
+            product.productLogo = media;
         }
 
         if (params.eventsId?.length) {

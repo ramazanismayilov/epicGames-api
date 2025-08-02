@@ -12,9 +12,9 @@ export class MediaEntity extends BaseEntity {
     @Column({ type: 'enum', enum: Media, default: Media.IMAGE })
     type: Media;
 
-    @CreateDateColumn()
+    @CreateDateColumn({ select: false })
     createdAt: Date;
 
-    @UpdateDateColumn()
+    @UpdateDateColumn({ select: false })
     updatedAt: Date;
 }

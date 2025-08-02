@@ -56,11 +56,21 @@ export class CheckoutService {
                         price: true,
                         discount: true,
                         discountedPrice: true,
-                        media: {
+                        detailImage: {
                             id: true,
                             url: true,
                             type: true
-                        }
+                        },
+                        coverImage: {
+                            id: true,
+                            url: true,
+                            type: true,
+                        },
+                        productLogo: {
+                            id: true,
+                            url: true,
+                            type: true,
+                        },
                     }
                 }
             }
@@ -93,7 +103,9 @@ export class CheckoutService {
                     product: {
                         id: true,
                         name: true,
-                        media: true,
+                        detailImage: true,
+                        coverImage: true,
+                        productLogo: true,
                         isFree: true,
                         price: true,
                         discount: true,
@@ -130,11 +142,21 @@ export class CheckoutService {
                         price: true,
                         discount: true,
                         discountedPrice: true,
-                        media: {
+                        detailImage: {
                             id: true,
                             url: true,
                             type: true
-                        }
+                        },
+                        coverImage: {
+                            id: true,
+                            url: true,
+                            type: true,
+                        },
+                        productLogo: {
+                            id: true,
+                            url: true,
+                            type: true,
+                        },
                     }
                 }
             }
@@ -150,7 +172,7 @@ export class CheckoutService {
 
         const products = await this.productRepo.find({
             where: { id: In(params.productIds) },
-            select: ['id', 'name', 'media', 'isFree', 'price', 'discount', 'discountedPrice'],
+            select: ['id', 'name', 'detailImage', 'isFree', 'price', 'discount', 'discountedPrice'],
         });
 
         if (products.length !== params.productIds.length) throw new NotFoundException('Some products not found');

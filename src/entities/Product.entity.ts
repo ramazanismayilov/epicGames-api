@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, JoinTable, ManyToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { MediaEntity } from "./Media.entity";
 import { GenreEntity } from "./Genre.entity";
 import { FeatureEntity } from "./Feature.entity";
@@ -14,8 +14,16 @@ export class ProductEntity {
     id: number
 
     @ManyToMany(() => MediaEntity)
-    @JoinTable({ name: 'product_media' })
-    media: MediaEntity[];
+    @JoinTable({ name: 'product_detailImage' })
+    detailImage: MediaEntity[];
+
+    @OneToOne(() => MediaEntity, { eager: true })
+    @JoinColumn({ name: 'coverImageId' })
+    coverImage: MediaEntity;
+
+    @OneToOne(() => MediaEntity, { eager: true })
+    @JoinColumn({ name: 'productLogoId' })
+    productLogo: MediaEntity
 
     @Column()
     name: string
