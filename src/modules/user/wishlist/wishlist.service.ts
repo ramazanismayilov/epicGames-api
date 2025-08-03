@@ -26,7 +26,7 @@ export class WishlistService {
 
         const userWishlist = await this.wishlistRepo.find({
             where: { user: { id: user.id } },
-            relations: ['product', 'product.media'],
+            relations: ['product', 'product.coverImage'],
             select: {
                 product: {
                     id: true,
@@ -36,21 +36,7 @@ export class WishlistService {
                     price: true,
                     discount: true,
                     discountedPrice: true,
-                    detailImage: {
-                        id: true,
-                        url: true,
-                        type: true
-                    },
-                    coverImage: {
-                        id: true,
-                        url: true,
-                        type: true,
-                    },
-                    productLogo: {
-                        id: true,
-                        url: true,
-                        type: true,
-                    },
+                    coverImage: true
                 }
             }
         });

@@ -7,7 +7,6 @@ import { UserEntity } from "../../entities/User.entity";
 import { DataSource, FindOptionsWhere, ILike, Repository } from "typeorm";
 import { AddNewsDto, GetNewsDto, UpdateNewsDto } from "./dto/news.dto";
 import { MediaEntity } from "../../entities/Media.entity";
-import { PaginationDto } from "../../common/dto/pagination.dto";
 
 @Injectable()
 export class NewsService {

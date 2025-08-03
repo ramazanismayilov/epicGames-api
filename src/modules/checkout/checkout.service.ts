@@ -8,7 +8,7 @@ import { CheckoutDto, CheckoutItemDto, CompleteCheckoutDto } from "./dto/checkou
 import { ProductEntity } from "../../entities/Product.entity";
 import { CheckoutStatus } from "../../common/enums/checkout.enum";
 import { CheckoutItemEntity } from "../../entities/CheckoutItem.entity";
-import { CartItemEntity } from "src/entities/CartItem.entity";
+import { CartItemEntity } from "../../entities/CartItem.entity";
 
 @Injectable()
 export class CheckoutService {
@@ -31,7 +31,7 @@ export class CheckoutService {
 
     async getAllCheckouts() {
         const checkouts = await this.checkoutRepo.find({
-            relations: ['user', 'items', 'items.product', 'items.product.media'],
+            relations: ['user', 'items', 'items.product', 'items.product.coverImage'],
             select: {
                 id: true,
                 totalAmount: true,
@@ -56,21 +56,7 @@ export class CheckoutService {
                         price: true,
                         discount: true,
                         discountedPrice: true,
-                        detailImage: {
-                            id: true,
-                            url: true,
-                            type: true
-                        },
-                        coverImage: {
-                            id: true,
-                            url: true,
-                            type: true,
-                        },
-                        productLogo: {
-                            id: true,
-                            url: true,
-                            type: true,
-                        },
+                        coverImage: true
                     }
                 }
             }
@@ -83,7 +69,7 @@ export class CheckoutService {
     async getCheckoutById(checkoutId: number) {
         const checkout = await this.checkoutRepo.findOne({
             where: { id: checkoutId },
-            relations: ['user', 'items', 'items.product'],
+            relations: ['user', 'items', 'items.product', 'items.product.coverImage'],
             select: {
                 id: true,
                 totalAmount: true,
@@ -103,9 +89,7 @@ export class CheckoutService {
                     product: {
                         id: true,
                         name: true,
-                        detailImage: true,
                         coverImage: true,
-                        productLogo: true,
                         isFree: true,
                         price: true,
                         discount: true,
@@ -122,7 +106,7 @@ export class CheckoutService {
     async getCheckoutsByUser(userId: number) {
         const checkouts = await this.checkoutRepo.find({
             where: { user: { id: userId } },
-            relations: ['user', 'items', 'items.product', 'items.product.media'],
+            relations: ['user', 'items', 'items.product', 'items.product.coverImage'],
             select: {
                 user: {
                     id: true,
@@ -142,21 +126,7 @@ export class CheckoutService {
                         price: true,
                         discount: true,
                         discountedPrice: true,
-                        detailImage: {
-                            id: true,
-                            url: true,
-                            type: true
-                        },
-                        coverImage: {
-                            id: true,
-                            url: true,
-                            type: true,
-                        },
-                        productLogo: {
-                            id: true,
-                            url: true,
-                            type: true,
-                        },
+                        coverImage: true
                     }
                 }
             }
@@ -172,7 +142,7 @@ export class CheckoutService {
 
         const products = await this.productRepo.find({
             where: { id: In(params.productIds) },
-            select: ['id', 'name', 'detailImage', 'isFree', 'price', 'discount', 'discountedPrice'],
+            select: ['id', 'name', 'coverImage', 'isFree', 'price', 'discount', 'discountedPrice'],
         });
 
         if (products.length !== params.productIds.length) throw new NotFoundException('Some products not found');
@@ -324,6 +294,8 @@ export class CheckoutService {
 
         const item = checkout.items.find(i => i.id === checkoutItemId)
         if (!item) throw new NotFoundException('Checkout item not found in checkout')
+
+        if (checkout.status === CheckoutStatus.COMPLETED) throw new BadRequestException('Completed checkout cannot be deleted');
 
         await this.checkoutItemRepo.remove(item)
 

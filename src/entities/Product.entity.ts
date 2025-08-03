@@ -21,7 +21,7 @@ export class ProductEntity {
     @JoinColumn({ name: 'coverImageId' })
     coverImage: MediaEntity;
 
-    @OneToOne(() => MediaEntity, { eager: true })
+    @OneToOne(() => MediaEntity)
     @JoinColumn({ name: 'productLogoId' })
     productLogo: MediaEntity
 

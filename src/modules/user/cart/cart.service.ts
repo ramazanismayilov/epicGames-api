@@ -26,7 +26,7 @@ export class CartService {
 
         const userCart = await this.cartRepo.find({
             where: { user: { id: user.id } },
-            relations: ['product', 'product.media'],
+            relations: ['product', 'product.coverImage'],
             select: {
                 product: {
                     id: true,
@@ -36,21 +36,7 @@ export class CartService {
                     price: true,
                     discount: true,
                     discountedPrice: true,
-                    detailImage: {
-                        id: true,
-                        url: true,
-                        type: true
-                    },
-                    coverImage: {
-                        id: true,
-                        url: true,
-                        type: true,
-                    },
-                    productLogo: {
-                        id: true,
-                        url: true,
-                        type: true,
-                    },
+                    coverImage: true
                 }
             }
         });

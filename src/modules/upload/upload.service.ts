@@ -22,7 +22,7 @@ export class UploadService {
     }
 
     async getMedias() {
-        const medias = await this.mediaRepo.find({ order: { id: 'ASC' } })
+        const medias = await this.mediaRepo.find({ order: { id: 'ASC' }, select: { id: true, url: true, type: true, createdAt: true, updatedAt: true } })
         if (medias.length === 0) throw new NotFoundException('Medias not found');
 
         return medias
