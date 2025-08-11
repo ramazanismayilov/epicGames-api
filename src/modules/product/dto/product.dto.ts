@@ -1,6 +1,6 @@
 import { ApiPropertyOptional, PartialType } from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
-import { IsArray, IsBoolean, IsEnum, IsNumber, IsOptional, IsPositive, IsString, IsUUID, Min } from "class-validator";
+import { IsArray, IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsPositive, IsString, IsUUID, Max, Min } from "class-validator";
 import { AgeRestriction } from "../../../common/enums/ageRestriction.enum";
 
 export class ProductDto {
@@ -46,6 +46,10 @@ export class ProductDto {
     @Type()
     @IsBoolean()
     isSilder: boolean
+
+    @Type()
+    @IsBoolean()
+    isPin: boolean
 
     @Type()
     @IsString()

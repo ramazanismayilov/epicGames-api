@@ -52,9 +52,7 @@ export class ProductService {
 
         if (search) where.name = ILike(`%${search}%`);
         if (isDiscount === true) where.isDiscount = true;
-        if (isFree === true) {
-            where.isFree = true;
-        } else if (isFree === false) where.isFree = false;
+        if (isFree === true) { where.isFree = true } else if (isFree === false) { where.isFree = false }
         if (isTopSeller === true) where.isTopSeller = true;
         if (eventId?.length) where.events = { id: In(eventId) };
         if (genreId?.length) where.genres = { id: In(genreId) };
@@ -93,7 +91,7 @@ export class ProductService {
                 }
             },
             order: {
-                [sortBy]: order
+                [sortBy]: order,
             },
             skip: offset,
             take: limit,
@@ -176,6 +174,11 @@ export class ProductService {
         if (params.productLogoId) {
             productLogo = await this.mediaRepo.findOneBy({ id: params.productLogoId });
             if (!productLogo) throw new NotFoundException('Product logo not found');
+        }
+
+        if (params.isPin) {
+            const pinnedCount = await this.productRepo.count({ where: { isPin: true } });
+            if (pinnedCount >= 4) throw new BadRequestException('Maximum 4 products can be pinned.');
         }
 
         const product = this.productRepo.create({

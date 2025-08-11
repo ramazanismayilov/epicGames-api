@@ -67,6 +67,9 @@ export class ProductEntity {
     @Column({ type: 'enum', enum: AgeRestriction, default: AgeRestriction.Age3 })
     ageRestriction: AgeRestriction
 
+    @Column({ default: false })
+    isPin: boolean;
+
     @ManyToMany(() => EventEntity, { cascade: true })
     @JoinTable({ name: 'product_event' })
     events: EventEntity[];
