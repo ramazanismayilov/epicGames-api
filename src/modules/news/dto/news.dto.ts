@@ -1,6 +1,6 @@
 import { PartialType } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsOptional, IsPositive, IsString, IsUUID, Min } from "class-validator";
+import { IsArray, IsInt, IsOptional, IsPositive, IsString, IsUUID, Min, ValidateNested } from "class-validator";
 
 export class NewsDto {
     @Type()
@@ -34,4 +34,10 @@ export class GetNewsDto {
     @IsOptional()
     @IsString()
     search?: string;
+}
+
+export class DragAndDropDto {
+    @IsInt()
+    @Min(1)
+    order: number;
 }

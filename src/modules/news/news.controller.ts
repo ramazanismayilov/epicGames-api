@@ -1,7 +1,7 @@
-import { Body, Controller, Delete, Get, Param, Post, Query } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from "@nestjs/common";
 import { NewsService } from "./news.service";
 import { Auth } from "../../common/decorators/auth.decorator";
-import { AddNewsDto, GetNewsDto, UpdateNewsDto } from "./dto/news.dto";
+import { AddNewsDto, DragAndDropDto, GetNewsDto, UpdateNewsDto } from "./dto/news.dto";
 
 @Controller('news')
 export class NewsController {
@@ -15,6 +15,12 @@ export class NewsController {
     @Get(':id')
     getNews(@Param('id') id: number) {
         return this.newsService.getNews(id)
+    }
+
+    @Post('dragAndDrop/:id')
+    @Auth()
+    dragAndDrop(@Param('id') id: number, @Body() body: DragAndDropDto) {
+        return this.newsService.dragAndDrop(id, body);
     }
 
     @Post()

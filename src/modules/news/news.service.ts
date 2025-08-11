@@ -1,11 +1,11 @@
-import { ConflictException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectDataSource } from "@nestjs/typeorm";
 import { ClsService } from "nestjs-cls";
 import { Role } from "../../common/enums/role.enum";
 import { NewsEntity } from "../../entities/News.entity";
 import { UserEntity } from "../../entities/User.entity";
 import { DataSource, FindOptionsWhere, ILike, Repository } from "typeorm";
-import { AddNewsDto, GetNewsDto, UpdateNewsDto } from "./dto/news.dto";
+import { AddNewsDto, DragAndDropDto, GetNewsDto, UpdateNewsDto } from "./dto/news.dto";
 import { MediaEntity } from "../../entities/Media.entity";
 
 @Injectable()
@@ -40,6 +40,7 @@ export class NewsService {
                     type: true,
                 },
             },
+            order: { order: 'ASC' },
             skip: offset,
             take: limit,
         });
@@ -73,6 +74,17 @@ export class NewsService {
         return news
     }
 
+    async dragAndDrop(newsId: number, params: DragAndDropDto) {
+        const news = await this.newsRepo.findOne({ where: { id: newsId } });
+        if (!news) throw new NotFoundException('News not found');
+
+        const conflictingNews = await this.newsRepo.findOne({ where: { order: params.order } });
+        if (conflictingNews) await this.newsRepo.update(conflictingNews.id, { order: news.order });
+
+        await this.newsRepo.update(newsId, { order: params.order });
+        return { message: 'success' };
+    }
+
     async addNews(params: AddNewsDto) {
         const user = this.cls.get<UserEntity>('user')
         if (user.role.name !== Role.ADMIN) throw new ForbiddenException('You do not have permission to add news')
@@ -83,7 +95,14 @@ export class NewsService {
         let media = await this.mediaRepo.findOne({ where: { id: params.mediaId } })
         if (!media) throw new NotFoundException("Media not found")
 
-        let news = this.newsRepo.create({ ...params, media })
+        let maxOrderResult = await this.newsRepo
+            .createQueryBuilder('news')
+            .select('MAX(news.order)', 'max')
+            .getRawOne<{ max: number }>();
+
+        let order = (maxOrderResult?.max || 0) + 1;
+
+        let news = this.newsRepo.create({ ...params, media, order })
         await this.newsRepo.save(news)
         return { message: "News created successfully", news }
     }

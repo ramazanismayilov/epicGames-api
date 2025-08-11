@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, getRepository, JoinColumn, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { MediaEntity } from "./Media.entity";
 
 @Entity('news')
@@ -18,6 +18,9 @@ export class NewsEntity {
 
     @Column()
     description: string
+
+    @Column({ type: 'int' })
+    order: number;
 
     @CreateDateColumn()
     createdAt: Date;
