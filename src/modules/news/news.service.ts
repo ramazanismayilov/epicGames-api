@@ -4,7 +4,7 @@ import { ClsService } from "nestjs-cls";
 import { Role } from "../../common/enums/role.enum";
 import { NewsEntity } from "../../entities/News.entity";
 import { UserEntity } from "../../entities/User.entity";
-import { DataSource, FindOptionsWhere, ILike, Repository } from "typeorm";
+import { DataSource, FindOptionsWhere, ILike, Not, Repository } from "typeorm";
 import { AddNewsDto, DragAndDropDto, GetNewsDto, UpdateNewsDto } from "./dto/news.dto";
 import { MediaEntity } from "../../entities/Media.entity";
 
@@ -108,16 +108,19 @@ export class NewsService {
     }
 
     async updateNews(newsId: number, params: UpdateNewsDto) {
-        const user = this.cls.get<UserEntity>('user')
-        if (user.role.name !== Role.ADMIN) throw new ForbiddenException('You do not have permission to add news')
+        const user = this.cls.get<UserEntity>('user');
+        if (user.role.name !== Role.ADMIN) throw new ForbiddenException('You do not have permission to add news');
 
         const news = await this.newsRepo.findOne({ where: { id: newsId }, relations: ['media'] });
         if (!news) throw new NotFoundException('News not found');
 
         if (params.mediaId) {
-            let media = await this.mediaRepo.findOne({ where: { id: params.mediaId } })
-            if (!media) throw new NotFoundException("Media not found")
-            news.media = media
+            const existingNews = await this.newsRepo.findOne({ where: { media: { id: params.mediaId }, id: Not(news.id) } });
+            if (existingNews) throw new ConflictException('This media is already used in another news entry');
+
+            const media = await this.mediaRepo.findOneBy({ id: params.mediaId });
+            if (!media) throw new NotFoundException('Media not found');
+            news.media = media;
         }
 
         if (params.title) news.title = params.title;

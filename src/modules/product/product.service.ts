@@ -2,7 +2,7 @@ import { BadRequestException, ConflictException, ForbiddenException, Injectable,
 import { InjectDataSource } from "@nestjs/typeorm";
 import { ClsService } from "nestjs-cls";
 import { ProductEntity } from "../../entities/Product.entity";
-import { DataSource, DeepPartial, FindOptionsWhere, ILike, In, Repository } from "typeorm";
+import { DataSource, DeepPartial, FindOptionsWhere, ILike, In, Not, Repository } from "typeorm";
 import { AddProductDto, GetProductsDto, UpdateProductDto } from "./dto/product.dto";
 import { UserEntity } from "../../entities/User.entity";
 import { Role } from "../../common/enums/role.enum";
@@ -91,6 +91,7 @@ export class ProductService {
                 }
             },
             order: {
+                isPin: 'DESC',
                 [sortBy]: order,
             },
             skip: offset,
@@ -217,7 +218,7 @@ export class ProductService {
         }
 
         if (params.detailImageId) {
-            const existingProduct = await this.productRepo.findOne({ where: { detailImage: { id: In(params.detailImageId) } } })
+            const existingProduct = await this.productRepo.findOne({ where: { detailImage: { id: In(params.detailImageId) }, id: Not(product.id) } })
             if (existingProduct) throw new ConflictException("This detailImage has already been used in another product entry")
 
             const media = await findEntitiesByIds(this.mediaRepo, params.detailImageId, 'media');
@@ -225,7 +226,7 @@ export class ProductService {
         }
 
         if (params.coverImageId) {
-            const existingProduct = await this.productRepo.findOne({ where: { coverImage: { id: params.coverImageId } } });
+            const existingProduct = await this.productRepo.findOne({ where: { coverImage: { id: params.coverImageId }, id: Not(product.id) } });
             if (existingProduct) throw new ConflictException("This coverImage has already been used in another product entry");
 
             const media = await this.mediaRepo.findOneBy({ id: params.coverImageId });
@@ -234,7 +235,7 @@ export class ProductService {
         }
 
         if (params.productLogoId) {
-            const existingProduct = await this.productRepo.findOne({ where: { productLogo: { id: params.productLogoId } } });
+            const existingProduct = await this.productRepo.findOne({ where: { productLogo: { id: params.productLogoId }, id: Not(product.id) } });
             if (existingProduct) throw new ConflictException("This productLogo has already been used in another product entry");
 
             const media = await this.mediaRepo.findOneBy({ id: params.productLogoId });
@@ -275,6 +276,14 @@ export class ProductService {
         if (params.isFree !== undefined) {
             validatePriceAndDiscount(params.isFree, params.price, params.discount);
             product.isFree = params.isFree;
+        }
+
+        if (params.isPin !== undefined) {
+            if (params.isPin) {
+                const pinnedCount = await this.productRepo.count({ where: { isPin: true } });
+                if (pinnedCount >= 4) throw new BadRequestException('Maximum 4 products can be pinned.');
+            }
+            product.isPin = params.isPin;
         }
 
         const name = params.name ?? product.name
