@@ -26,14 +26,17 @@ async function bootstrap() {
       .setVersion('1.0')
       .addBearerAuth()
       .build();
+
     const documentFactory = () => SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('', app, documentFactory, {
+
+    // 🚀 Swagger-i kökdə ("/") aç
+    SwaggerModule.setup('/', app, documentFactory, {
       swaggerOptions: {
         persistAuthorization: true,
       },
     });
 
-    await app.init(); // listen() yox, init() ✅
+    await app.init(); // listen yoxdur, Vercel üçün init
     cachedApp = app;
   }
 
