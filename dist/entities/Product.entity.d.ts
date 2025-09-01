@@ -1,0 +1,37 @@
+import { MediaEntity } from "./Media.entity";
+import { GenreEntity } from "./Genre.entity";
+import { FeatureEntity } from "./Feature.entity";
+import { PlatformEntity } from "./Platform.entity";
+import { EventEntity } from "./Event.entity";
+import { SubscriptionEntity } from "./Subscription.entity";
+import { AgeRestriction } from "../common/enums/ageRestriction.enum";
+import { TypeEntity } from "./Type.entity";
+export declare class ProductEntity {
+    id: number;
+    detailImage: MediaEntity[];
+    coverImage: MediaEntity;
+    productLogo: MediaEntity;
+    name: string;
+    slug: string;
+    description: string;
+    isFree: boolean;
+    price: number;
+    discount: number;
+    discountedPrice: number;
+    isDiscount: boolean;
+    soldCount: number;
+    isTopSeller: boolean;
+    developer: string;
+    publisher: string;
+    isSlider: boolean;
+    ageRestriction: AgeRestriction;
+    isPin: boolean;
+    events: EventEntity[];
+    genres: GenreEntity[];
+    types: TypeEntity[];
+    features: FeatureEntity[];
+    platforms: PlatformEntity[];
+    subscriptions: SubscriptionEntity[];
+    createdAt: Date;
+    updatedAt: Date;
+}
