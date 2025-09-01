@@ -9,7 +9,7 @@ export class CheckoutEntity {
     @PrimaryGeneratedColumn()
     id: number
 
-    @ManyToOne(() => UserEntity, (user) => user.checkouts)
+    @ManyToOne(() => UserEntity, (user) => user.checkouts, {onDelete: 'CASCADE'} )
     user: UserEntity;
 
     @Expose()
