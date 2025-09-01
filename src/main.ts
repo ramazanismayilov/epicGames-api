@@ -3,33 +3,45 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
+let cachedApp: any = null;
+
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  if (!cachedApp) {
+    const app = await NestFactory.create(AppModule);
 
-  app.setGlobalPrefix('api')
-  app.enableCors()
+    app.setGlobalPrefix('api');
+    app.enableCors();
 
-  app.useGlobalPipes(
-    new ValidationPipe({
-      transform: true,
-      whitelist: true,
-      forbidNonWhitelisted: true,
-    })
-  );
+    app.useGlobalPipes(
+      new ValidationPipe({
+        transform: true,
+        whitelist: true,
+        forbidNonWhitelisted: true,
+      }),
+    );
 
-  const config = new DocumentBuilder()
-    .setTitle('Epic Games')
-    .setDescription('The Epic Games API description')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
-  const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('', app, documentFactory, {
-    swaggerOptions: {
-      persistAuthorization: true
-    }
-  });
+    const config = new DocumentBuilder()
+      .setTitle('Epic Games')
+      .setDescription('The Epic Games API description')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build();
+    const documentFactory = () => SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('', app, documentFactory, {
+      swaggerOptions: {
+        persistAuthorization: true,
+      },
+    });
 
-  await app.listen(process.env.PORT ?? 3000);
+    await app.init(); // listen() yox, init() ✅
+    cachedApp = app;
+  }
+
+  return cachedApp;
 }
-bootstrap();
+
+export default async function handler(req, res) {
+  const app = await bootstrap();
+  const server = app.getHttpAdapter().getInstance();
+  return server(req, res);
+}
