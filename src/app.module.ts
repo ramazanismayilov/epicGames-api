@@ -42,16 +42,6 @@ import { CheckoutModule } from './modules/checkout/checkout.module';
         };
       },
     }),
-    // TypeOrmModule.forRoot({
-    //   type: 'mysql',
-    //   host: 'localhost',
-    //   port: 3306,
-    //   username: 'root',
-    //   password: '',
-    //   database: 'epic-games',
-    //   entities: [join(__dirname, '/entities/*.entity.{ts,js}')],
-    //   synchronize: true,
-    // }),
     JwtModule.registerAsync({
       global: true,
       imports: [ConfigModule],
